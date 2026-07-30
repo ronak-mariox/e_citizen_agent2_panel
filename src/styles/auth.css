@@ -1,0 +1,707 @@
+/* Auth flow — Figma "E-Citizen Mobile App", nodes 189:3 (login) and 191:181
+   (forgot password). Every screen shares the split card and the brand panel;
+   only the right-hand pane changes. */
+
+/* ---------------------------------------------------------------- shell -- */
+
+.auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 16px;
+  background-color: var(--color-page);
+}
+
+.auth__card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 896px;
+  min-height: 640px;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.auth__panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px;
+}
+
+/* ----------------------------------------------------------- brand pane -- */
+
+.brand-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  overflow: hidden;
+  color: var(--color-on-navy-primary);
+  background-color: var(--color-navy);
+}
+
+/* Decorative bokeh circles bleeding past the panel edges. */
+.brand-panel__orb {
+  position: absolute;
+  border-radius: var(--radius-pill);
+}
+
+.brand-panel__orb--top {
+  top: -64px;
+  right: -64px;
+  width: 256px;
+  height: 256px;
+  background-color: rgb(255 255 255 / 0.05);
+}
+
+.brand-panel__orb--mid {
+  top: 128px;
+  right: -32px;
+  width: 160px;
+  height: 160px;
+  background-color: rgb(56 189 248 / 0.1);
+}
+
+.brand-panel__orb--bottom {
+  bottom: -48px;
+  left: -48px;
+  width: 224px;
+  height: 224px;
+  background-color: rgb(255 255 255 / 0.05);
+}
+
+.brand-panel > *:not(.brand-panel__orb) {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-panel__logo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-control);
+}
+
+.brand-panel__names {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-panel__title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 22.5px;
+  font-variation-settings: var(--opsz-display);
+}
+
+.brand-panel__subtitle {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-on-navy-muted);
+}
+
+.brand-panel__headline {
+  max-width: 368px;
+  margin-top: 40px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 41.25px;
+  font-variation-settings: var(--opsz-display);
+}
+
+.brand-panel__blurb {
+  max-width: 320px;
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 22.75px;
+  color: var(--color-on-navy-body);
+}
+
+.brand-panel__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 32px;
+  padding: 0;
+  list-style: none;
+}
+
+.brand-panel__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px;
+  background-color: rgb(255 255 255 / 0.1);
+  border-radius: var(--radius-control);
+}
+
+.brand-panel__stat-value {
+  margin-top: 6px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+  font-variation-settings: var(--opsz-display);
+}
+
+.brand-panel__stat-label {
+  font-size: 12px;
+  line-height: 15px;
+  color: var(--color-on-navy-muted);
+}
+
+.brand-panel__footer {
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.brand-panel__ministry {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-on-navy-muted);
+}
+
+.brand-panel__assurance {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-on-navy-accent);
+}
+
+/* ------------------------------------------------------------ pane head -- */
+
+.auth__back {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 32px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.auth__back:hover {
+  color: var(--color-text-label);
+}
+
+.auth__intro {
+  padding-bottom: 32px;
+}
+
+/* The login design reserves an empty 40px band above the badge. */
+.auth__intro--login {
+  padding-top: 40px;
+}
+
+.auth__icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-control);
+}
+
+.auth__icon-badge--amber {
+  background-color: var(--color-warning-surface);
+}
+
+.auth__icon-badge--indigo {
+  background-color: var(--color-info-surface);
+}
+
+.auth__icon-badge--green {
+  background-color: var(--color-positive-surface);
+}
+
+.auth__title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-text);
+}
+
+.auth__icon-badge + .auth__title {
+  margin-top: 20px;
+}
+
+.auth__subtitle {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-muted);
+}
+
+.auth__subtitle strong {
+  font-weight: 600;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-text-label);
+}
+
+/* ------------------------------------------------------------- controls -- */
+
+.auth__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-text-label);
+}
+
+.auth__label--spaced {
+  margin-top: 16px;
+}
+
+.auth__field {
+  position: relative;
+  margin-top: 6px;
+}
+
+.auth__field-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.auth__input {
+  width: 100%;
+  padding: 10px 16px 10px 36px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-input);
+  background-color: var(--color-field);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.auth__input::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.auth__input:focus-visible {
+  border-color: var(--color-primary);
+  outline-offset: 0;
+}
+
+.auth__input--password {
+  padding-right: 40px;
+}
+
+.auth__input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.auth__reveal {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: flex;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-checkbox);
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.auth__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-on-navy-primary);
+  background-color: var(--color-primary);
+  border: 0;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.auth__submit:hover:not(:disabled) {
+  background-color: #0046ad;
+}
+
+.auth__submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------- errors -- */
+
+.auth__error {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-danger);
+}
+
+.auth__alert {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-danger);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------- note box -- */
+
+.auth__note {
+  margin-top: 32px;
+  padding: 12px;
+  border: 1px solid;
+  border-radius: var(--radius-control);
+}
+
+.auth__note--tight {
+  margin-top: 20px;
+}
+
+.auth__note--success {
+  background-color: var(--color-success-surface);
+  border-color: var(--color-success-border);
+}
+
+.auth__note--muted {
+  background-color: var(--color-page);
+  border-color: var(--color-border-subtle);
+}
+
+.auth__note--info {
+  background-color: var(--color-info-surface);
+  border-color: var(--color-info-border);
+}
+
+.auth__note-title {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  font-variation-settings: var(--opsz-display);
+}
+
+.auth__note--success .auth__note-title {
+  color: var(--color-success-strong);
+}
+
+.auth__note--muted .auth__note-title {
+  color: var(--color-text-slate);
+}
+
+.auth__note-line {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.auth__note--success .auth__note-line {
+  color: var(--color-success);
+}
+
+.auth__note--muted .auth__note-line {
+  color: var(--color-text-slate);
+}
+
+.auth__note--info .auth__note-line {
+  margin-top: 0;
+  color: var(--color-info-text);
+}
+
+.auth__note-line--tight {
+  margin-top: 0;
+}
+
+.auth__note-line code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.auth__note-line strong {
+  font-weight: 500;
+  font-variation-settings: var(--opsz-display);
+}
+
+.auth__note--info .auth__note-line strong {
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- login -- */
+
+.login__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-success-strong);
+  background-color: var(--color-success-border);
+  border-radius: var(--radius-pill);
+}
+
+.login__options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.login__remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-text-label);
+  cursor: pointer;
+}
+
+.login__checkbox {
+  position: relative;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  appearance: none;
+  background-color: var(--color-surface);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-checkbox);
+  cursor: pointer;
+}
+
+.login__checkbox:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.login__checkbox:checked::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 4px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--color-surface);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.login__forgot {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.login__forgot:hover {
+  text-decoration: underline;
+}
+
+.login__support {
+  margin-top: 24px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-subtle);
+  text-align: center;
+}
+
+.login__support-email {
+  font-weight: 500;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-text-label);
+}
+
+/* ------------------------------------------------------------------ otp -- */
+
+.otp__inputs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.otp__box {
+  /* Holds the designed 44px everywhere it fits; only shrinks on very narrow
+     phones, where six fixed boxes would overflow the card. */
+  flex: 0 1 44px;
+  width: 44px;
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  font-size: 18px;
+  font-weight: 600;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-text-input);
+  text-align: center;
+  background-color: var(--color-field);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.otp__box:focus {
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(0 82 204 / 0.12);
+}
+
+.otp__resend {
+  margin-top: 20px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.otp__resend strong {
+  font-weight: 700;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-text-label);
+}
+
+.otp__resend-button {
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  font-variation-settings: var(--opsz-display);
+  color: var(--color-primary);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.otp__resend-button:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------- reset -- */
+
+.reset__rules {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px;
+  list-style: none;
+  background-color: var(--color-page);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+}
+
+.reset__rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-muted);
+}
+
+.reset__dot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-pill);
+}
+
+.reset__dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-text-subtle);
+  border-radius: var(--radius-pill);
+}
+
+/* The design only specifies the unmet state; met rules reuse the greens the
+   flow already uses for its lock badge. */
+.reset__rule--met {
+  color: var(--color-success-strong);
+}
+
+.reset__rule--met .reset__dot {
+  background-color: var(--color-positive-surface);
+}
+
+.reset__rule--met .reset__dot::before {
+  background-color: var(--color-positive);
+}
+
+/* ----------------------------------------------------------- responsive -- */
+
+@media (max-width: 900px) {
+  .auth__card {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .auth__panel {
+    justify-content: flex-start;
+  }
+
+  .auth__intro--login {
+    padding-top: 0;
+  }
+
+  /* Stacked, so the divider can't be pinned to the bottom of a tall column. */
+  .brand-panel__footer {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 520px) {
+  .auth__panel {
+    padding: 24px;
+  }
+
+  .brand-panel {
+    padding: 24px;
+  }
+
+  .brand-panel__headline {
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .brand-panel__stats {
+    grid-template-columns: 1fr;
+  }
+}
