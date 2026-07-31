@@ -15,9 +15,10 @@ const emptyOtp = () => Array(OTP_LENGTH).fill('');
 /**
  * Password recovery — step two: the 6-digit code.
  *
- * `onSubmit` receives `{ code }`; `onResend` requests a fresh code.
+ * `onSubmit` receives `{ code }`; `onResend` requests a fresh code and returns
+ * the new dev hint, if the backend is exposing one.
  */
-export function OtpForm({ identifier, onSubmit, onResend }) {
+export function OtpForm({ destination, devOtp, onSubmit, onResend }) {
   const fieldId = useId();
   const inputRefs = useRef([]);
 
@@ -25,6 +26,9 @@ export function OtpForm({ identifier, onSubmit, onResend }) {
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // Only ever set outside production, where the backend returns the code it
+  // generated because no SMS gateway is wired up yet.
+  const [hint, setHint] = useState(devOtp);
 
   const code = digits.join('');
   const canSubmit = code.length === OTP_LENGTH && !submitting;
@@ -106,11 +110,13 @@ export function OtpForm({ identifier, onSubmit, onResend }) {
   async function handleResend() {
     setFormError('');
     setDigits(emptyOtp());
-    setSecondsLeft(RESEND_SECONDS);
     focusBox(0);
 
     try {
-      await onResend?.();
+      // the new code replaces the old one, so the old hint must not linger
+      const nextOtp = await onResend?.();
+      setHint(nextOtp ?? '');
+      setSecondsLeft(RESEND_SECONDS);
     } catch (error) {
       setFormError(error?.message || 'Unable to resend the code. Please try again.');
     }
@@ -149,8 +155,7 @@ export function OtpForm({ identifier, onSubmit, onResend }) {
         <h1 className="auth__title">Enter OTP</h1>
         <p className="auth__subtitle">
           A 6-digit code was sent to{' '}
-          <strong>{identifier || 'your registered email'}</strong> and linked
-          mobile number.
+          <strong>{destination || 'the mobile number on your staff record'}</strong>.
         </p>
       </header>
 
@@ -204,11 +209,14 @@ export function OtpForm({ identifier, onSubmit, onResend }) {
         )}
       </form>
 
-      <div className="auth__note auth__note--info auth__note--tight">
-        <p className="auth__note-line">
-          <strong>Demo hint:</strong> Use OTP <code>123456</code>
-        </p>
-      </div>
+      {hint && (
+        <div className="auth__note auth__note--info auth__note--tight">
+          <p className="auth__note-line">
+            <strong>Dev hint:</strong> the OTP is <code>{hint}</code> — shown because no SMS
+            gateway is connected yet.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

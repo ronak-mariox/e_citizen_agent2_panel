@@ -1,5 +1,7 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
+import { resendResetOtp, verifyResetOtp } from '@/api/auth';
+import { getErrorMessage } from '@/api/client';
 import OtpForm from '@/components/OtpForm';
 import ROUTES from '@/constants/routes';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -7,22 +9,47 @@ import AuthLayout from '@/layouts/AuthLayout';
 export function VerifyOtpPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const identifier = location.state?.identifier ?? '';
+  const employeeId = location.state?.employeeId ?? '';
+  const mobile = location.state?.mobile ?? '';
+  const devOtp = location.state?.devOtp ?? '';
 
-  // TODO: verify the code against the auth service once it is available.
+  // Landing here directly (refresh, bookmark) means no code was ever sent.
+  if (!employeeId) {
+    return <Navigate to={ROUTES.FORGOT_PASSWORD} replace />;
+  }
+
   async function handleSubmit({ code }) {
-    console.info('otp submitted', { identifier, code });
-    // A verified code only unlocks the reset step — the agent signs in afterwards.
-    navigate(ROUTES.RESET_PASSWORD, { replace: true, state: { identifier } });
+    try {
+      // A verified code only unlocks the reset step — the agent still signs in
+      // afterwards. `resetToken` is what authorises that next call, and the OTP
+      // is spent here so it never travels further.
+      const { resetToken } = await verifyResetOtp({ employeeId, otp: code });
+
+      navigate(ROUTES.RESET_PASSWORD, { replace: true, state: { resetToken } });
+    } catch (error) {
+      throw new Error(getErrorMessage(error), { cause: error });
+    }
   }
 
   async function handleResend() {
-    console.info('otp resend requested', { identifier });
+    try {
+      // returned so the form can refresh its dev hint with the new code
+      const data = await resendResetOtp({ employeeId });
+
+      return data.devOtp;
+    } catch (error) {
+      throw new Error(getErrorMessage(error), { cause: error });
+    }
   }
 
   return (
     <AuthLayout>
-      <OtpForm identifier={identifier} onSubmit={handleSubmit} onResend={handleResend} />
+      <OtpForm
+        destination={mobile}
+        devOtp={devOtp}
+        onSubmit={handleSubmit}
+        onResend={handleResend}
+      />
     </AuthLayout>
   );
 }

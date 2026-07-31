@@ -1,5 +1,7 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
+import { resetPassword } from '@/api/auth';
+import { getErrorMessage } from '@/api/client';
 import ResetPasswordForm from '@/components/ResetPasswordForm';
 import ROUTES from '@/constants/routes';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -7,12 +9,22 @@ import AuthLayout from '@/layouts/AuthLayout';
 export function ResetPasswordPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const identifier = location.state?.identifier ?? '';
+  const resetToken = location.state?.resetToken ?? '';
 
-  // TODO: send the new password to the auth service once it is available.
+  // The token is single-use and only ever arrives from the OTP screen.
+  if (!resetToken) {
+    return <Navigate to={ROUTES.FORGOT_PASSWORD} replace />;
+  }
+
   async function handleSubmit({ password }) {
-    console.info('password reset submitted', { identifier, length: password.length });
-    navigate(ROUTES.LOGIN, { replace: true });
+    try {
+      await resetPassword({ resetToken, newPassword: password });
+
+      // The reset revokes every session, so the agent must sign in again.
+      navigate(ROUTES.LOGIN, { replace: true });
+    } catch (error) {
+      throw new Error(getErrorMessage(error), { cause: error });
+    }
   }
 
   return (

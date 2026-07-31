@@ -42,3 +42,62 @@ input {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* Shown by the route guards while a stored session is being confirmed against
+   the server. Brief, but it has to occupy the page rather than flash empty. */
+.route-loading {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  color: var(--color-text-muted, #6b7280);
+}
+
+/* Placeholder landing screen for a signed-in agent — see pages/DashboardPage. */
+.session-card {
+  max-width: 32rem;
+  margin: 4rem auto;
+  padding: 2rem;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.75rem;
+}
+
+.session-card__title {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.session-card__subtitle {
+  color: var(--color-text-muted, #6b7280);
+  margin-bottom: 1.5rem;
+}
+
+.session-card__list {
+  margin: 0 0 1.5rem;
+}
+
+.session-card__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.session-card__row dt {
+  color: var(--color-text-muted, #6b7280);
+}
+
+.session-card__row dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.session-card__logout {
+  width: 100%;
+  padding: 0.75rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--color-brand, #1d4ed8);
+  color: #fff;
+  cursor: pointer;
+}

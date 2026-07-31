@@ -5,23 +5,23 @@ import ROUTES from '@/constants/routes';
 
 import arrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import keyIcon from '@/assets/icons/key.svg';
-import mailIcon from '@/assets/icons/mail.svg';
+import userIcon from '@/assets/icons/user.svg';
 import sendIcon from '@/assets/icons/send.svg';
 
 /**
  * Password recovery — step one of the OTP flow.
  *
- * `onSubmit` receives `{ identifier }` (an email or an employee ID) — wire it
- * to the auth API from the page that renders this form.
+ * `onSubmit` receives `{ employeeId }`. Agents have no email on their staff
+ * record; the code goes to the mobile number held there.
  */
 export function ForgotPasswordForm({ onSubmit }) {
   const fieldId = useId();
 
-  const [identifier, setIdentifier] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = identifier.trim().length > 0 && !submitting;
+  const canSubmit = employeeId.trim().length > 0 && !submitting;
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -34,7 +34,7 @@ export function ForgotPasswordForm({ onSubmit }) {
     setSubmitting(true);
 
     try {
-      await onSubmit?.({ identifier: identifier.trim() });
+      await onSubmit?.({ employeeId: employeeId.trim() });
     } catch (error) {
       setFormError(error?.message || 'Unable to send the code. Please try again.');
     } finally {
@@ -55,19 +55,19 @@ export function ForgotPasswordForm({ onSubmit }) {
         </span>
         <h1 className="auth__title">Forgot password?</h1>
         <p className="auth__subtitle">
-          Enter your registered email or Employee ID. We will send a one-time
-          code.
+          Enter your Employee ID. We will send a one-time code to the mobile
+          number on your staff record.
         </p>
       </header>
 
       <form onSubmit={handleSubmit} noValidate>
         <label className="auth__label" htmlFor={fieldId}>
-          Email or Employee ID
+          Employee ID
         </label>
         <div className="auth__field">
           <img
             className="auth__field-icon"
-            src={mailIcon}
+            src={userIcon}
             alt=""
             width="16"
             height="16"
@@ -75,12 +75,12 @@ export function ForgotPasswordForm({ onSubmit }) {
           <input
             className="auth__input"
             id={fieldId}
-            name="identifier"
+            name="employeeId"
             type="text"
             autoComplete="username"
-            placeholder="ravi.kumar@ecitizen.gov.in"
-            value={identifier}
-            onChange={(event) => setIdentifier(event.target.value)}
+            placeholder="ECZ-A2-0007"
+            value={employeeId}
+            onChange={(event) => setEmployeeId(event.target.value)}
           />
         </div>
 

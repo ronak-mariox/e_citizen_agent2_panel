@@ -3,6 +3,7 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
   VERIFY_OTP: '/verify-otp',
   RESET_PASSWORD: '/reset-password',
+  DASHBOARD: '/dashboard',
 };
 
 export default ROUTES;
