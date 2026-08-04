@@ -1,52 +1,52 @@
-import { useNavigate } from 'react-router-dom';
+import DashboardLayout from '../layouts/DashboardLayout.jsx';
+import StatCard from '../components/dashboard/StatCard.jsx';
+import ActiveCases from '../components/dashboard/ActiveCases.jsx';
+import GovVisits from '../components/dashboard/GovVisits.jsx';
+import refreshIcon from '../assets/icons/agent2/refresh.svg';
+import { AGENT, STAT_CARDS } from '../constants/dashboard.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
-import ROUTES from '@/constants/routes';
-import { useAuth } from '@/context/AuthContext';
+function greeting(hour = new Date().getHours()) {
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
-/**
- * Placeholder landing screen for a signed-in Agent 2.
- *
- * The Agent 2 dashboard has not been designed yet; this exists so the auth flow
- * has somewhere to land and so the session can be inspected and ended. Replace
- * the body when the real screens arrive — the guard and logout wiring stay.
- */
 export function DashboardPage() {
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const firstName = (user?.fullName || AGENT.name).split(' ')[0];
 
-  async function handleLogout() {
-    await signOut();
-    navigate(ROUTES.LOGIN, { replace: true });
+  // TODO: refetch the dashboard payload once the agent API is available.
+  function handleRefresh() {
+    console.info('dashboard refresh requested');
   }
 
   return (
-    <main className="session-card">
-      <h1 className="session-card__title">Agent 2 — Senior Review Portal</h1>
-      <p className="session-card__subtitle">You are signed in.</p>
+    <DashboardLayout>
+      <main className="dash-page">
+        <div className="dash-page__head">
+          <div>
+            <h1 className="dash-page__title">{`${greeting()}, ${firstName} 👋`}</h1>
+            <p className="dash-page__subtitle">Agent 2 · Government Processing Overview</p>
+          </div>
+          <button className="dash-page__refresh" type="button" onClick={handleRefresh}>
+            <img src={refreshIcon} alt="" width="13.12" height="13.12" />
+            Refresh
+          </button>
+        </div>
 
-      <dl className="session-card__list">
-        <div className="session-card__row">
-          <dt>Name</dt>
-          <dd>{user?.fullName || '—'}</dd>
+        <div className="stat-grid">
+          {STAT_CARDS.map((card) => (
+            <StatCard key={card.id} {...card} />
+          ))}
         </div>
-        <div className="session-card__row">
-          <dt>Employee ID</dt>
-          <dd>{user?.employeeId ?? '—'}</dd>
-        </div>
-        <div className="session-card__row">
-          <dt>Role</dt>
-          <dd>{user?.role ?? '—'}</dd>
-        </div>
-        <div className="session-card__row">
-          <dt>Status</dt>
-          <dd>{user?.status ?? '—'}</dd>
-        </div>
-      </dl>
 
-      <button className="session-card__logout" type="button" onClick={handleLogout}>
-        Logout
-      </button>
-    </main>
+        <div className="split-row">
+          <ActiveCases />
+          <GovVisits />
+        </div>
+      </main>
+    </DashboardLayout>
   );
 }
 

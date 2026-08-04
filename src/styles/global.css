@@ -1,13 +1,10 @@
+@import './fonts.css';
 @import './tokens.css';
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-}
-
-* {
-  margin: 0;
 }
 
 html,
@@ -17,29 +14,52 @@ body,
 }
 
 body {
+  margin: 0;
   background-color: var(--color-page);
-  color: var(--color-text);
+  color: var(--color-body);
   font-family: var(--font-sans);
-  font-variation-settings: var(--opsz-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-variation-settings: 'opsz' 9;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-img,
-svg {
-  display: block;
-  max-width: 100%;
+h1,
+h2,
+h3,
+p {
+  margin: 0;
 }
 
-button,
-input {
+/* Lists are used for layout throughout the console — rows, checklists, steps,
+   timelines — so the browser's indent and vertical margins would show up as
+   stray alignment everywhere. `dd` is the worst of them: it ships with a 40px
+   left indent that pushes a value out of line with its own label. */
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+}
+
+button {
   font: inherit;
-  font-variation-settings: inherit;
   color: inherit;
 }
 
+img {
+  max-width: 100%;
+}
+
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 
@@ -50,54 +70,4 @@ input {
   place-items: center;
   min-height: 100vh;
   color: var(--color-text-muted, #6b7280);
-}
-
-/* Placeholder landing screen for a signed-in agent — see pages/DashboardPage. */
-.session-card {
-  max-width: 32rem;
-  margin: 4rem auto;
-  padding: 2rem;
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 0.75rem;
-}
-
-.session-card__title {
-  font-size: 1.25rem;
-  margin-bottom: 0.25rem;
-}
-
-.session-card__subtitle {
-  color: var(--color-text-muted, #6b7280);
-  margin-bottom: 1.5rem;
-}
-
-.session-card__list {
-  margin: 0 0 1.5rem;
-}
-
-.session-card__row {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
-}
-
-.session-card__row dt {
-  color: var(--color-text-muted, #6b7280);
-}
-
-.session-card__row dd {
-  margin: 0;
-  font-weight: 600;
-}
-
-.session-card__logout {
-  width: 100%;
-  padding: 0.75rem;
-  border: 0;
-  border-radius: 0.5rem;
-  background: var(--color-brand, #1d4ed8);
-  color: #fff;
-  cursor: pointer;
 }

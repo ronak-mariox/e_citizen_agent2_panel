@@ -1,10 +1,10 @@
 import { useId, useState } from 'react';
 
-import eyeIcon from '@/assets/icons/eye.svg';
-import eyeOffIcon from '@/assets/icons/eye-off.svg';
-import keyWhiteIcon from '@/assets/icons/key-white.svg';
-import lockGreenIcon from '@/assets/icons/lock-green.svg';
-import lockIcon from '@/assets/icons/lock.svg';
+import lockGreen from '../assets/icons/lock-green.svg';
+import lockIcon from '../assets/icons/lock.svg';
+import eyeIcon from '../assets/icons/eye.svg';
+import eyeOffIcon from '../assets/icons/eye-off.svg';
+import keyWhite from '../assets/icons/key-white.svg';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -12,30 +12,16 @@ const MIN_PASSWORD_LENGTH = 8;
    the dot can fill in as the agent types. */
 function checkRules(password, confirm) {
   return [
-    {
-      id: 'length',
-      label: `At least ${MIN_PASSWORD_LENGTH} characters`,
-      met: password.length >= MIN_PASSWORD_LENGTH,
-    },
+    { id: 'length', label: `At least ${MIN_PASSWORD_LENGTH} characters`, met: password.length >= MIN_PASSWORD_LENGTH },
     {
       id: 'mix',
       label: 'Mix of letters and numbers',
       met: /[a-z]/i.test(password) && /\d/.test(password),
     },
-    {
-      id: 'match',
-      label: 'Passwords match',
-      met: password.length > 0 && password === confirm,
-    },
+    { id: 'match', label: 'Passwords match', met: password.length > 0 && password === confirm },
   ];
 }
 
-/**
- * Password recovery — final step.
- *
- * `onSubmit` receives `{ password }` — wire it to the auth API from the page
- * that renders this form.
- */
 export function ResetPasswordForm({ onSubmit }) {
   const passwordFieldId = useId();
   const confirmFieldId = useId();
@@ -71,92 +57,86 @@ export function ResetPasswordForm({ onSubmit }) {
   }
 
   return (
-    <section className="auth__panel">
-      <header className="auth__intro">
-        <span className="auth__icon-badge auth__icon-badge--green">
-          <img src={lockGreenIcon} alt="" width="24" height="24" />
-        </span>
-        <h1 className="auth__title">Set new password</h1>
-        <p className="auth__subtitle">
-          Choose a strong password to secure your account.
-        </p>
+    <section className="auth-pane">
+      <header className="auth-pane__head">
+        <div className="auth-icon-badge auth-icon-badge--green">
+          <img src={lockGreen} alt="" width="22.494" height="22.494" />
+        </div>
+        <h1 className="auth-pane__title">Set new password</h1>
+        <p className="auth-pane__subtitle">Choose a strong password to secure your account.</p>
       </header>
 
       <form onSubmit={handleSubmit} noValidate>
-        <label className="auth__label" htmlFor={passwordFieldId}>
-          New Password
-        </label>
-        <div className="auth__field">
-          <img
-            className="auth__field-icon"
-            src={lockIcon}
-            alt=""
-            width="16"
-            height="16"
-          />
-          <input
-            className="auth__input auth__input--password"
-            id={passwordFieldId}
-            name="password"
-            type={showPassword ? 'text' : 'password'}
-            autoComplete="new-password"
-            placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <button
-            className="auth__reveal"
-            type="button"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-            aria-pressed={showPassword}
-            onClick={() => setShowPassword((visible) => !visible)}
-          >
-            <img src={showPassword ? eyeOffIcon : eyeIcon} alt="" width="16" height="16" />
-          </button>
+        <div className="field">
+          <label className="field__label" htmlFor={passwordFieldId}>
+            New Password
+          </label>
+          <div className="field__control">
+            <img className="field__icon" src={lockIcon} alt="" width="14.992" height="14.992" />
+            <input
+              id={passwordFieldId}
+              className="field__input field__input--with-action"
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              autoComplete="new-password"
+              placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <button
+              className="field__toggle"
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              <img
+                src={showPassword ? eyeOffIcon : eyeIcon}
+                alt=""
+                width="14.992"
+                height="14.992"
+              />
+            </button>
+          </div>
         </div>
 
-        <label className="auth__label auth__label--spaced" htmlFor={confirmFieldId}>
-          Confirm Password
-        </label>
-        <div className="auth__field">
-          <img
-            className="auth__field-icon"
-            src={lockIcon}
-            alt=""
-            width="16"
-            height="16"
-          />
-          <input
-            className="auth__input"
-            id={confirmFieldId}
-            name="confirmPassword"
-            type={showPassword ? 'text' : 'password'}
-            autoComplete="new-password"
-            placeholder="Re-enter new password"
-            value={confirm}
-            onChange={(event) => setConfirm(event.target.value)}
-          />
+        <div className="field">
+          <label className="field__label" htmlFor={confirmFieldId}>
+            Confirm Password
+          </label>
+          <div className="field__control">
+            <img className="field__icon" src={lockIcon} alt="" width="14.992" height="14.992" />
+            <input
+              id={confirmFieldId}
+              className="field__input"
+              type={showPassword ? 'text' : 'password'}
+              name="confirmPassword"
+              autoComplete="new-password"
+              placeholder="Re-enter new password"
+              value={confirm}
+              onChange={(event) => setConfirm(event.target.value)}
+            />
+          </div>
         </div>
 
-        <ul className="reset__rules">
+        <ul className="password-rules">
           {rules.map((rule) => (
             <li
-              className={rule.met ? 'reset__rule reset__rule--met' : 'reset__rule'}
+              className={rule.met ? 'password-rule password-rule--met' : 'password-rule'}
               key={rule.id}
             >
-              <span className="reset__dot" />
+              <span className="password-rule__dot" />
               {rule.label}
             </li>
           ))}
         </ul>
 
-        <button className="auth__submit" type="submit" disabled={submitting}>
-          <img src={keyWhiteIcon} alt="" width="16" height="16" />
+        <button className="auth-submit" type="submit" disabled={submitting} data-busy={submitting}>
+          <img src={keyWhite} alt="" width="14.992" height="14.992" />
           {submitting ? 'Resetting…' : 'Reset Password'}
         </button>
 
         {formError && (
-          <p className="auth__alert" role="alert">
+          <p className="auth-alert" role="alert">
             {formError}
           </p>
         )}

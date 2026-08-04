@@ -1,19 +1,11 @@
 import { useId, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import ROUTES from '@/constants/routes';
+import arrowLeft from '../assets/icons/arrow-left.svg';
+import keyIcon from '../assets/icons/key.svg';
+import userIcon from '../assets/icons/user.svg';
+import sendIcon from '../assets/icons/send.svg';
 
-import arrowLeftIcon from '@/assets/icons/arrow-left.svg';
-import keyIcon from '@/assets/icons/key.svg';
-import userIcon from '@/assets/icons/user.svg';
-import sendIcon from '@/assets/icons/send.svg';
-
-/**
- * Password recovery — step one of the OTP flow.
- *
- * `onSubmit` receives `{ employeeId }`. Agents have no email on their staff
- * record; the code goes to the mobile number held there.
- */
 export function ForgotPasswordForm({ onSubmit }) {
   const fieldId = useId();
 
@@ -43,64 +35,65 @@ export function ForgotPasswordForm({ onSubmit }) {
   }
 
   return (
-    <section className="auth__panel">
-      <Link className="auth__back" to={ROUTES.LOGIN}>
-        <img src={arrowLeftIcon} alt="" width="14" height="14" />
+    <section className="auth-pane">
+      <Link className="auth-back" to="/login">
+        <img src={arrowLeft} alt="" width="13.12" height="13.12" />
         Back to Login
       </Link>
 
-      <header className="auth__intro">
-        <span className="auth__icon-badge auth__icon-badge--amber">
-          <img src={keyIcon} alt="" width="24" height="24" />
-        </span>
-        <h1 className="auth__title">Forgot password?</h1>
-        <p className="auth__subtitle">
-          Enter your Employee ID. We will send a one-time code to the mobile
-          number on your staff record.
+      <header className="auth-pane__head">
+        <div className="auth-icon-badge auth-icon-badge--amber">
+          <img src={keyIcon} alt="" width="22.494" height="22.494" />
+        </div>
+        <h1 className="auth-pane__title">Forgot password?</h1>
+        <p className="auth-pane__subtitle">
+          Enter your Employee ID. We will send a one-time code to the mobile number on your
+          staff record.
         </p>
       </header>
 
       <form onSubmit={handleSubmit} noValidate>
-        <label className="auth__label" htmlFor={fieldId}>
-          Employee ID
-        </label>
-        <div className="auth__field">
-          <img
-            className="auth__field-icon"
-            src={userIcon}
-            alt=""
-            width="16"
-            height="16"
-          />
-          <input
-            className="auth__input"
-            id={fieldId}
-            name="employeeId"
-            type="text"
-            autoComplete="username"
-            placeholder="ECZ-A2-0007"
-            value={employeeId}
-            onChange={(event) => setEmployeeId(event.target.value)}
-          />
+        <div className="field">
+          <label className="field__label" htmlFor={fieldId}>
+            Employee ID
+          </label>
+          <div className="field__control">
+            <img className="field__icon" src={userIcon} alt="" width="14.992" height="14.992" />
+            <input
+              id={fieldId}
+              className="field__input"
+              type="text"
+              name="employeeId"
+              autoComplete="username"
+              placeholder="ECZ-A2-0007"
+              value={employeeId}
+              onChange={(event) => setEmployeeId(event.target.value)}
+            />
+          </div>
         </div>
 
-        <button className="auth__submit" type="submit" disabled={!canSubmit}>
-          <img src={sendIcon} alt="" width="16" height="16" />
+        <button
+          className="auth-submit"
+          type="submit"
+          disabled={!canSubmit}
+          data-busy={submitting}
+        >
+          <img src={sendIcon} alt="" width="14.992" height="14.992" />
           {submitting ? 'Sending…' : 'Send OTP'}
         </button>
 
         {formError && (
-          <p className="auth__alert" role="alert">
+          <p className="auth-alert" role="alert">
             {formError}
           </p>
         )}
       </form>
 
-      <div className="auth__note auth__note--muted auth__note--tight">
-        <p className="auth__note-title">Don&apos;t have access to your email?</p>
-        <p className="auth__note-line">
-          Contact your department supervisor or IT helpdesk at{' '}
-          <strong>1800-111-222</strong> (toll-free).
+      <div className="info-note">
+        <p className="info-note__title">Don&apos;t have access to that number?</p>
+        <p className="info-note__text">
+          Contact your department supervisor or IT helpdesk at <strong>1800-111-222</strong>{' '}
+          (toll-free).
         </p>
       </div>
     </section>

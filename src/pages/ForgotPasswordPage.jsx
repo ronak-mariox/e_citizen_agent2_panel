@@ -1,10 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 
-import { forgotPassword } from '@/api/auth';
-import { getErrorMessage } from '@/api/client';
-import ForgotPasswordForm from '@/components/ForgotPasswordForm';
-import ROUTES from '@/constants/routes';
-import AuthLayout from '@/layouts/AuthLayout';
+import AuthLayout from '../layouts/AuthLayout.jsx';
+import ForgotPasswordForm from '../components/ForgotPasswordForm.jsx';
+import { forgotPassword } from '../api/auth.js';
+import { getErrorMessage } from '../api/client.js';
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -16,7 +15,7 @@ export function ForgotPasswordPage() {
       // `mobile` comes back masked, and `devOtp` only outside production.
       const data = await forgotPassword({ employeeId });
 
-      navigate(ROUTES.VERIFY_OTP, {
+      navigate('/verify-otp', {
         state: { employeeId, mobile: data.mobile, devOtp: data.devOtp },
       });
     } catch (error) {

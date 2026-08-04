@@ -1,60 +1,54 @@
-import brandShieldIcon from '@/assets/icons/brand-shield.svg';
-import statBuildingIcon from '@/assets/icons/stat-building.svg';
-import statCheckIcon from '@/assets/icons/stat-check.svg';
-import statClockIcon from '@/assets/icons/stat-clock.svg';
-import statFileIcon from '@/assets/icons/stat-file.svg';
+import logoShield from '../assets/icons/logo-shield.svg';
+import statFile from '../assets/icons/stat-file.svg';
+import statClock from '../assets/icons/stat-clock.svg';
+import statCheck from '../assets/icons/stat-check.svg';
+import statBuilding from '../assets/icons/stat-building.svg';
 
 const STATS = [
-  { icon: statFileIcon, value: '12,400+', label: 'Applications Processed' },
-  { icon: statClockIcon, value: '3.2 days', label: 'Avg Resolution Time' },
-  { icon: statCheckIcon, value: '87%', label: 'Approval Rate' },
-  { icon: statBuildingIcon, value: '14', label: 'Departments Covered' },
+  { icon: statFile, value: '12,400+', label: 'Applications Processed' },
+  { icon: statClock, value: '3.2 days', label: 'Avg Resolution Time' },
+  { icon: statCheck, value: '87%', label: 'Approval Rate' },
+  { icon: statBuilding, value: '14', label: 'Departments Covered' },
 ];
 
-/** Navy marketing panel shared by every screen in the auth flow. */
 export function BrandPanel() {
   return (
     <aside className="brand-panel">
-      <span className="brand-panel__orb brand-panel__orb--top" aria-hidden="true" />
-      <span className="brand-panel__orb brand-panel__orb--mid" aria-hidden="true" />
-      <span className="brand-panel__orb brand-panel__orb--bottom" aria-hidden="true" />
+      <span className="brand-panel__blob brand-panel__blob--one" aria-hidden="true" />
+      <span className="brand-panel__blob brand-panel__blob--two" aria-hidden="true" />
+      <span className="brand-panel__blob brand-panel__blob--three" aria-hidden="true" />
 
-      <header className="brand-panel__header">
-        <span className="brand-panel__logo">
-          <img src={brandShieldIcon} alt="" width="20" height="20" />
-        </span>
-        <span className="brand-panel__names">
-          <span className="brand-panel__title">eCitizen Portal</span>
-          <span className="brand-panel__subtitle">
-            Government of India · Agent 2 — Senior Review
-          </span>
-        </span>
-      </header>
+      <div className="brand-panel__brand">
+        <div className="brand-panel__mark">
+          <img src={logoShield} alt="" width="18.749" height="18.749" />
+        </div>
+        <div>
+          <p className="brand-panel__name">eCitizen Portal</p>
+          <p className="brand-panel__org">Government of India · Agent 2 — Department Follow-up</p>
+        </div>
+      </div>
 
-      <h2 className="brand-panel__headline">Final approval, your authority.</h2>
-      <p className="brand-panel__blurb">
-        Verify documents, manage applications, and ensure timely resolution for
-        every citizen request — all in one secure workspace.
+      <h2 className="brand-panel__headline">Streamline citizen service delivery.</h2>
+
+      <p className="brand-panel__copy">
+        Verify documents, manage applications, and ensure timely resolution for every citizen
+        request — all in one secure workspace.
       </p>
 
-      <ul className="brand-panel__stats">
+      <div className="brand-panel__stats">
         {STATS.map((stat) => (
-          <li className="brand-panel__stat" key={stat.label}>
-            <img src={stat.icon} alt="" width="16" height="16" />
-            <span className="brand-panel__stat-value">{stat.value}</span>
-            <span className="brand-panel__stat-label">{stat.label}</span>
-          </li>
+          <div className="stat-tile" key={stat.label}>
+            <img className="stat-tile__icon" src={stat.icon} alt="" width="14.992" height="14.992" />
+            <p className="stat-tile__value">{stat.value}</p>
+            <p className="stat-tile__label">{stat.label}</p>
+          </div>
         ))}
-      </ul>
+      </div>
 
-      <footer className="brand-panel__footer">
-        <p className="brand-panel__ministry">
-          Ministry of Electronics &amp; Information Technology
-        </p>
-        <p className="brand-panel__assurance">
-          Secure · Authenticated · Government Use Only
-        </p>
-      </footer>
+      <div className="brand-panel__footer">
+        <p className="brand-panel__ministry">Ministry of Electronics &amp; Information Technology</p>
+        <p className="brand-panel__notice">Secure · Authenticated · Government Use Only</p>
+      </div>
     </aside>
   );
 }

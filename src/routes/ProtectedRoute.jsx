@@ -1,7 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import ROUTES from '@/constants/routes';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '../context/AuthContext.jsx';
 
 /**
  * Gate for the signed-in half of the app.
@@ -22,7 +21,7 @@ export function ProtectedRoute() {
   }
 
   if (status !== 'authenticated') {
-    return <Navigate to={ROUTES.LOGIN} replace state={{ from: location.pathname }} />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   return <Outlet />;
@@ -40,7 +39,7 @@ export function PublicOnlyRoute() {
   }
 
   if (status === 'authenticated') {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

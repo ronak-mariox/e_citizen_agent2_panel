@@ -1,23 +1,15 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import ROUTES from '@/constants/routes';
-
-import arrowLeftIcon from '@/assets/icons/arrow-left.svg';
-import checkIcon from '@/assets/icons/check.svg';
-import smartphoneIcon from '@/assets/icons/smartphone.svg';
+import arrowLeft from '../assets/icons/arrow-left.svg';
+import smartphone from '../assets/icons/smartphone.svg';
+import checkIcon from '../assets/icons/check.svg';
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
 
 const emptyOtp = () => Array(OTP_LENGTH).fill('');
 
-/**
- * Password recovery — step two: the 6-digit code.
- *
- * `onSubmit` receives `{ code }`; `onResend` requests a fresh code and returns
- * the new dev hint, if the backend is exposing one.
- */
 export function OtpForm({ destination, devOtp, onSubmit, onResend }) {
   const fieldId = useId();
   const inputRefs = useRef([]);
@@ -142,76 +134,83 @@ export function OtpForm({ destination, devOtp, onSubmit, onResend }) {
   }
 
   return (
-    <section className="auth__panel">
-      <Link className="auth__back" to={ROUTES.FORGOT_PASSWORD}>
-        <img src={arrowLeftIcon} alt="" width="14" height="14" />
+    <section className="auth-pane">
+      <Link className="auth-back" to="/forgot-password">
+        <img src={arrowLeft} alt="" width="13.12" height="13.12" />
         Back
       </Link>
 
-      <header className="auth__intro">
-        <span className="auth__icon-badge auth__icon-badge--indigo">
-          <img src={smartphoneIcon} alt="" width="24" height="24" />
-        </span>
-        <h1 className="auth__title">Enter OTP</h1>
-        <p className="auth__subtitle">
+      <header className="auth-pane__head">
+        <div className="auth-icon-badge auth-icon-badge--indigo">
+          <img src={smartphone} alt="" width="22.494" height="22.494" />
+        </div>
+        <h1 className="auth-pane__title">Enter OTP</h1>
+        <p className="auth-pane__subtitle">
           A 6-digit code was sent to{' '}
           <strong>{destination || 'the mobile number on your staff record'}</strong>.
         </p>
       </header>
 
       <form onSubmit={handleSubmit} noValidate>
-        <span className="auth__label" id={`${fieldId}-label`}>
-          6-Digit OTP
-        </span>
-        <div className="otp__inputs" role="group" aria-labelledby={`${fieldId}-label`}>
-          {digits.map((digit, index) => (
-            <input
-              // Positional boxes in a fixed-length list — the index is the identity.
-              key={index}
-              ref={(element) => {
-                inputRefs.current[index] = element;
-              }}
-              className="otp__box"
-              type="text"
-              inputMode="numeric"
-              autoComplete={index === 0 ? 'one-time-code' : 'off'}
-              maxLength={OTP_LENGTH}
-              aria-label={`Digit ${index + 1} of ${OTP_LENGTH}`}
-              value={digit}
-              onChange={(event) => handleChange(index, event.target.value)}
-              onKeyDown={(event) => handleKeyDown(index, event)}
-              onPaste={(event) => handlePaste(index, event)}
-            />
-          ))}
+        <div className="field">
+          <span className="field__label" id={`${fieldId}-label`}>
+            6-Digit OTP
+          </span>
+          <div className="otp-inputs" role="group" aria-labelledby={`${fieldId}-label`}>
+            {digits.map((digit, index) => (
+              <input
+                // Positional boxes in a fixed-length list — the index is the identity.
+                key={index}
+                ref={(element) => {
+                  inputRefs.current[index] = element;
+                }}
+                className="otp-input"
+                type="text"
+                inputMode="numeric"
+                autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                maxLength={OTP_LENGTH}
+                aria-label={`Digit ${index + 1} of ${OTP_LENGTH}`}
+                value={digit}
+                onChange={(event) => handleChange(index, event.target.value)}
+                onKeyDown={(event) => handleKeyDown(index, event)}
+                onPaste={(event) => handlePaste(index, event)}
+              />
+            ))}
+          </div>
         </div>
 
         {secondsLeft > 0 ? (
-          <p className="otp__resend">
+          <p className="otp-resend">
             Resend OTP in <strong>{secondsLeft}s</strong>
           </p>
         ) : (
-          <p className="otp__resend">
-            <button className="otp__resend-button" type="button" onClick={handleResend}>
+          <p className="otp-resend">
+            <button className="link-button" type="button" onClick={handleResend}>
               Resend OTP
             </button>
           </p>
         )}
 
-        <button className="auth__submit" type="submit" disabled={!canSubmit}>
-          <img src={checkIcon} alt="" width="16" height="16" />
+        <button
+          className="auth-submit"
+          type="submit"
+          disabled={!canSubmit}
+          data-busy={submitting}
+        >
+          <img src={checkIcon} alt="" width="14.992" height="14.992" />
           {submitting ? 'Verifying…' : 'Verify OTP'}
         </button>
 
         {formError && (
-          <p className="auth__alert" role="alert">
+          <p className="auth-alert" role="alert">
             {formError}
           </p>
         )}
       </form>
 
       {hint && (
-        <div className="auth__note auth__note--info auth__note--tight">
-          <p className="auth__note-line">
+        <div className="hint-note">
+          <p className="hint-note__text">
             <strong>Dev hint:</strong> the OTP is <code>{hint}</code> — shown because no SMS
             gateway is connected yet.
           </p>

@@ -1,10 +1,9 @@
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import { resendResetOtp, verifyResetOtp } from '@/api/auth';
-import { getErrorMessage } from '@/api/client';
-import OtpForm from '@/components/OtpForm';
-import ROUTES from '@/constants/routes';
-import AuthLayout from '@/layouts/AuthLayout';
+import AuthLayout from '../layouts/AuthLayout.jsx';
+import OtpForm from '../components/OtpForm.jsx';
+import { resendResetOtp, verifyResetOtp } from '../api/auth.js';
+import { getErrorMessage } from '../api/client.js';
 
 export function VerifyOtpPage() {
   const location = useLocation();
@@ -15,7 +14,7 @@ export function VerifyOtpPage() {
 
   // Landing here directly (refresh, bookmark) means no code was ever sent.
   if (!employeeId) {
-    return <Navigate to={ROUTES.FORGOT_PASSWORD} replace />;
+    return <Navigate to="/forgot-password" replace />;
   }
 
   async function handleSubmit({ code }) {
@@ -25,7 +24,7 @@ export function VerifyOtpPage() {
       // is spent here so it never travels further.
       const { resetToken } = await verifyResetOtp({ employeeId, otp: code });
 
-      navigate(ROUTES.RESET_PASSWORD, { replace: true, state: { resetToken } });
+      navigate('/reset-password', { replace: true, state: { resetToken } });
     } catch (error) {
       throw new Error(getErrorMessage(error), { cause: error });
     }

@@ -1,42 +1,43 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-import * as authApi from '@/api/auth';
-import { getErrorMessage, setSessionExpiredHandler } from '@/api/client';
-import { PANEL_ROLE, PANEL_WRONG_ROLE_MESSAGE } from '@/constants/auth';
-import { clearSession, getAccessToken, getStoredUser, saveSession } from '@/utils/session';
+import * as authApi from "../api/auth";
+import { getErrorMessage, setSessionExpiredHandler } from "../api/client";
+import { PANEL_ROLE, PANEL_WRONG_ROLE_MESSAGE } from "../constants/auth";
+import {
+  clearSession,
+  getAccessToken,
+  getStoredUser,
+  saveSession,
+} from "../utils/session";
 
 const AuthContext = createContext(null);
 
-/**
- * Holds the signed-in agent for the whole app.
- *
- * `status` is what the router waits on:
- *   'loading'       — still confirming a stored token, render nothing routed yet
- *   'authenticated' — `user` is a real, server-confirmed agent
- *   'anonymous'     — no session
- *
- * The status matters because without it a page refresh would flash the login
- * screen before /auth/me answers, and every guarded route would bounce.
- */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(getStoredUser);
-  const [status, setStatus] = useState(getAccessToken() ? 'loading' : 'anonymous');
+  const [status, setStatus] = useState(
+    getAccessToken() ? "loading" : "anonymous"
+  );
 
+  // Logout helper
   const endSession = useCallback(() => {
     clearSession();
     setUser(null);
-    setStatus('anonymous');
+    setStatus("anonymous");
   }, []);
 
-  // The axios interceptor calls this when a refresh fails, which is the only
-  // way the app learns a session died while it was idle.
+  // Handle expired session
   useEffect(() => {
     setSessionExpiredHandler(endSession);
   }, [endSession]);
 
-  // A token in localStorage is only a claim. Confirm it against the server
-  // before trusting the cached user — the account may have been blocked, or its
-  // role changed, since that was written.
+  // Check logged-in user on page refresh
   useEffect(() => {
     if (!getAccessToken()) return;
 
@@ -51,9 +52,8 @@ export function AuthProvider({ children }) {
 
         saveSession({ user: userData });
         setUser(userData);
-        setStatus('authenticated');
+        setStatus("authenticated");
       } catch {
-        // the interceptor already tried to refresh and failed
         endSession();
       }
     }
@@ -61,30 +61,30 @@ export function AuthProvider({ children }) {
     loadUser();
   }, [endSession]);
 
+  // Login
   const signIn = useCallback(async (credentials) => {
     try {
-      const { user: agent, accessToken } = await authApi.login(credentials);
+      const { user, accessToken } = await authApi.login(credentials);
 
-      // Authorization, not just authentication: this build is the Agent 2
-      // portal, so an Agent 1 or admin account is refused a session here even
-      // though its password was correct.
-      if (agent.role !== PANEL_ROLE) {
+      if (user.role !== PANEL_ROLE) {
         throw new Error(PANEL_WRONG_ROLE_MESSAGE);
       }
 
-      saveSession({ accessToken, user: agent });
-      setUser(agent);
-      setStatus('authenticated');
+      saveSession({ accessToken, user });
+      setUser(user);
+      setStatus("authenticated");
 
-      return agent;
+      return user;
     } catch (error) {
-      // Only an axios failure has `.response`. Running getErrorMessage on the
-      // wrong-role Error above would report it as a network problem and lose
-      // what it actually said.
+      // The wrong-role check above throws a plain Error with its own message.
+      // Only an axios failure has `.response`, and only that needs unwrapping —
+      // running getErrorMessage on our own Error would report it as a network
+      // problem and lose what it actually said.
       throw error.response ? new Error(getErrorMessage(error)) : error;
     }
   }, []);
 
+  // Logout
   const signOut = useCallback(async () => {
     try {
       await authApi.logout();
@@ -101,21 +101,25 @@ export function AuthProvider({ children }) {
     () => ({
       user,
       status,
-      isAuthenticated: status === 'authenticated',
+      isAuthenticated: status === "authenticated",
       signIn,
       signOut,
     }),
     [user, status, signIn, signOut]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error('useAuth must be used inside an <AuthProvider>');
+    throw new Error("useAuth must be used inside AuthProvider");
   }
 
   return context;

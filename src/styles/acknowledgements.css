@@ -1,0 +1,272 @@
+/* Acknowledgements — the submission receipts, as one table.
+
+   Reuses .avatar from dashboard.css; the counters follow the same shape as the
+   ones on Gov. Processing and Government Visits, and the table follows the same
+   grid as .gov-table so a column cannot drift from its heading. */
+
+.ack-page {
+  padding: var(--space-6);
+}
+
+.ack-page__title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: var(--leading-lg);
+  color: var(--color-body);
+  font-variation-settings: 'opsz' 14;
+}
+
+.ack-page__lead {
+  margin-top: 1.875px;
+  font-size: var(--text-sm);
+  line-height: 18.75px;
+  color: var(--color-dash-text);
+}
+
+/* ------------------------------------------------------------ counters -- */
+
+.ack-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14.992px;
+  margin-top: 18.75px;
+}
+
+/* Each tile is tinted to what it means — work still owed is amber, work with
+   the department is blue — so the row is read by colour before by number. */
+.ack-stat {
+  padding: 15.701px;
+  border: var(--field-border) solid;
+  border-radius: var(--radius-md);
+}
+
+.ack-stat__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.ack-stat__label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: var(--leading-xs);
+  opacity: 0.8;
+  font-variation-settings: 'opsz' 14;
+}
+
+.ack-stat__head img {
+  display: block;
+  flex: none;
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.ack-stat__value {
+  margin-top: var(--space-3);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: var(--leading-xl);
+  font-variation-settings: 'opsz' 14;
+}
+
+.ack-stat--green {
+  color: #016630;
+  background-color: #f0fdf4;
+  border-color: #b9f8cf;
+}
+
+.ack-stat--amber {
+  color: #973c00;
+  background-color: #fffbeb;
+  border-color: #fee685;
+}
+
+.ack-stat--blue {
+  color: #193cb8;
+  background-color: #eff6ff;
+  border-color: #bedbff;
+}
+
+/* --------------------------------------------------------------- table -- */
+
+.ack-table {
+  margin-top: 18.75px;
+  overflow-x: auto;
+  background-color: var(--color-surface);
+  border: var(--field-border) solid var(--color-dash-border);
+  border-radius: var(--radius-badge);
+}
+
+.ack-table__head,
+.ack-table__row {
+  display: grid;
+  grid-template-columns: 1.75fr 2.1fr 2fr 1.35fr 1.5fr 1.3fr;
+  gap: var(--space-4);
+  align-items: center;
+  min-width: 900px;
+  padding: 11.6px 14.992px;
+}
+
+.ack-table__head {
+  padding-top: 11.25px;
+  padding-bottom: 11.25px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: var(--leading-xs);
+  color: var(--color-dash-text);
+  background-color: rgba(241, 245, 249, 0.5);
+  border-bottom: var(--field-border) solid var(--color-dash-border);
+  font-variation-settings: 'opsz' 14;
+}
+
+.ack-table__row + .ack-table__row {
+  border-top: var(--field-border) solid var(--color-dash-border);
+}
+
+.ack-table__row:hover {
+  background-color: var(--color-page);
+}
+
+.ack-cell {
+  display: block;
+  min-width: 0;
+  font-size: var(--text-sm);
+  line-height: 18.75px;
+  color: var(--color-body);
+  overflow-wrap: anywhere;
+}
+
+/* The application id is the case's name, so it carries the panel's own green
+   and is the way into the case screen. */
+.ack-cell--id {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: var(--leading-xs);
+  color: var(--color-agent-green);
+  text-decoration: none;
+}
+
+.ack-cell--id:hover {
+  text-decoration: underline;
+}
+
+/* The department's number, quoted back to them — monospace so a transcription
+   slip is visible at a glance. */
+.ack-cell--ref {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
+
+.ack-cell--customer {
+  display: flex;
+  align-items: center;
+  gap: 7.5px;
+  font-weight: 500;
+  font-variation-settings: 'opsz' 14;
+}
+
+/* Status is a word rather than a colour alone. No dot here, unlike
+   .status-badge: the column heading already says what is being reported. */
+.ack-pill {
+  display: inline-block;
+  padding: 1.875px 7.491px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: var(--leading-xs);
+  white-space: nowrap;
+  border-radius: var(--radius-pill);
+  font-variation-settings: 'opsz' 14;
+}
+
+.ack-pill--amber {
+  color: #bb4d00;
+  background-color: #fef3c6;
+}
+
+.ack-pill--green {
+  color: #008236;
+  background-color: #dcfce7;
+}
+
+.ack-pill--blue {
+  color: #1447e6;
+  background-color: #dbeafe;
+}
+
+/* ------------------------------------------------------------- actions -- */
+
+.ack-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3.75px 9.375px;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: var(--leading-xs);
+  color: var(--color-body);
+  white-space: nowrap;
+  background-color: var(--color-surface);
+  border: var(--field-border) solid var(--color-dash-border);
+  border-radius: var(--space-4);
+  cursor: pointer;
+  font-variation-settings: 'opsz' 14;
+}
+
+.ack-action:hover {
+  background-color: var(--color-page);
+}
+
+/* Attaching the receipt is the whole point of the row, so it carries the
+   panel's green; a receipt already in has nothing left to press for. */
+.ack-action--upload {
+  color: #007a55;
+  background-color: #ecfdf5;
+  border-color: transparent;
+}
+
+.ack-action--upload:hover {
+  background-color: #d0fae5;
+}
+
+.ack-action:focus-within {
+  outline: 2px solid var(--color-agent-green);
+  outline-offset: 2px;
+}
+
+.ack-action img {
+  display: block;
+  width: 11.247px;
+  height: 11.247px;
+}
+
+/* The label is the control; the input itself is only there to open the picker. */
+.ack-action__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+/* ---------------------------------------------------------- responsive -- */
+
+@media (max-width: 1120px) {
+  .ack-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ack-page {
+    padding: var(--space-5);
+  }
+}
+
+@media (max-width: 620px) {
+  .ack-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

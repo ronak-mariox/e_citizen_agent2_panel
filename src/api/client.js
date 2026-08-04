@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { clearSession, getAccessToken, saveSession } from '@/utils/session';
+import { clearSession, getAccessToken, saveSession } from '../utils/session.js';
 
 /**
  * One axios instance for the whole app.

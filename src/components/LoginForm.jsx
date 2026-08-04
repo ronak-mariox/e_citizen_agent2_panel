@@ -1,23 +1,15 @@
 import { useId, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import ROUTES from '@/constants/routes';
-
-import badgeCheckIcon from '@/assets/icons/badge-check.svg';
-import eyeIcon from '@/assets/icons/eye.svg';
-import eyeOffIcon from '@/assets/icons/eye-off.svg';
-import lockIcon from '@/assets/icons/lock.svg';
-import shieldCheckIcon from '@/assets/icons/shield-check.svg';
-import userIcon from '@/assets/icons/user.svg';
+import badgeFile from '../assets/icons/badge-file.svg';
+import userIcon from '../assets/icons/user.svg';
+import lockIcon from '../assets/icons/lock.svg';
+import eyeIcon from '../assets/icons/eye.svg';
+import eyeOffIcon from '../assets/icons/eye-off.svg';
+import shieldCheck from '../assets/icons/shield-check.svg';
 
 const MIN_PASSWORD_LENGTH = 4;
 
-/**
- * Agent 2 sign-in form.
- *
- * `onSubmit` receives `{ employeeId, password, remember }` — wire it to the
- * auth API from the page that renders this form.
- */
 export function LoginForm({ onSubmit }) {
   const employeeFieldId = useId();
   const passwordFieldId = useId();
@@ -67,129 +59,129 @@ export function LoginForm({ onSubmit }) {
   }
 
   return (
-    <section className="auth__panel">
-      <header className="auth__intro auth__intro--login">
-        <span className="login__badge">
-          <img src={badgeCheckIcon} alt="" width="14" height="14" />
-          Agent 2 — Senior Review Portal
-        </span>
-        <h1 className="auth__title">Welcome back</h1>
-        <p className="auth__subtitle">
+    <section className="auth-pane">
+      <header className="auth-pane__head auth-pane__head--login">
+        <p className="auth-badge">
+          <img src={badgeFile} alt="" width="13.12" height="13.12" />
+          Agent 2 — Department Follow-up Portal
+        </p>
+        <h1 className="auth-pane__title">Welcome back</h1>
+        <p className="auth-pane__subtitle">
           Sign in with your employee credentials to continue
         </p>
       </header>
 
       <form onSubmit={handleSubmit} noValidate>
-        <label className="auth__label" htmlFor={employeeFieldId}>
-          Employee ID
-        </label>
-        <div className="auth__field">
-          <img
-            className="auth__field-icon"
-            src={userIcon}
-            alt=""
-            width="16"
-            height="16"
-          />
-          <input
-            className="auth__input"
-            id={employeeFieldId}
-            name="employeeId"
-            type="text"
-            autoComplete="username"
-            placeholder="ECZ-A2-0018"
-            value={employeeId}
-            onChange={(event) => setEmployeeId(event.target.value)}
-            aria-invalid={Boolean(errors.employeeId)}
-            aria-describedby={errors.employeeId ? `${employeeFieldId}-error` : undefined}
-          />
-        </div>
-        {errors.employeeId && (
-          <p className="auth__error" id={`${employeeFieldId}-error`}>
-            {errors.employeeId}
-          </p>
-        )}
-
-        <label className="auth__label auth__label--spaced" htmlFor={passwordFieldId}>
-          Password
-        </label>
-        <div className="auth__field">
-          <img
-            className="auth__field-icon"
-            src={lockIcon}
-            alt=""
-            width="16"
-            height="16"
-          />
-          <input
-            className="auth__input auth__input--password"
-            id={passwordFieldId}
-            name="password"
-            type={showPassword ? 'text' : 'password'}
-            autoComplete="current-password"
-            placeholder="pass1234"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? `${passwordFieldId}-error` : undefined}
-          />
-          <button
-            className="auth__reveal"
-            type="button"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-            aria-pressed={showPassword}
-            onClick={() => setShowPassword((visible) => !visible)}
-          >
-            <img src={showPassword ? eyeOffIcon : eyeIcon} alt="" width="16" height="16" />
-          </button>
-        </div>
-        {errors.password && (
-          <p className="auth__error" id={`${passwordFieldId}-error`}>
-            {errors.password}
-          </p>
-        )}
-
-        <div className="login__options">
-          <label className="login__remember">
+        <div className="field">
+          <label className="field__label" htmlFor={employeeFieldId}>
+            Employee ID
+          </label>
+          <div className="field__control">
+            <img className="field__icon" src={userIcon} alt="" width="14.992" height="14.992" />
             <input
-              className="login__checkbox"
+              id={employeeFieldId}
+              className="field__input"
+              type="text"
+              name="employeeId"
+              autoComplete="username"
+              placeholder="ECZ-A2-0007"
+              value={employeeId}
+              onChange={(event) => setEmployeeId(event.target.value)}
+              aria-invalid={Boolean(errors.employeeId)}
+              aria-describedby={errors.employeeId ? `${employeeFieldId}-error` : undefined}
+            />
+          </div>
+          {errors.employeeId && (
+            <p className="field__error" id={`${employeeFieldId}-error`}>
+              {errors.employeeId}
+            </p>
+          )}
+        </div>
+
+        <div className="field">
+          <label className="field__label" htmlFor={passwordFieldId}>
+            Password
+          </label>
+          <div className="field__control">
+            <img className="field__icon" src={lockIcon} alt="" width="14.992" height="14.992" />
+            <input
+              id={passwordFieldId}
+              className="field__input field__input--with-action"
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? `${passwordFieldId}-error` : undefined}
+            />
+            <button
+              className="field__toggle"
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              <img
+                src={showPassword ? eyeOffIcon : eyeIcon}
+                alt=""
+                width="14.992"
+                height="14.992"
+              />
+            </button>
+          </div>
+          {errors.password && (
+            <p className="field__error" id={`${passwordFieldId}-error`}>
+              {errors.password}
+            </p>
+          )}
+        </div>
+
+        <div className="auth-form__options">
+          <label className="checkbox">
+            <input
+              className="checkbox__box"
               type="checkbox"
-              name="remember"
               checked={remember}
               onChange={(event) => setRemember(event.target.checked)}
             />
             Remember me
           </label>
-          <Link className="login__forgot" to={ROUTES.FORGOT_PASSWORD}>
+          <Link className="link-button" to="/forgot-password">
             Forgot password?
           </Link>
         </div>
 
-        <button className="auth__submit" type="submit" disabled={submitting}>
-          <img src={shieldCheckIcon} alt="" width="16" height="16" />
+        <button
+          className="auth-submit"
+          type="submit"
+          disabled={submitting}
+          data-busy={submitting}
+        >
+          <img src={shieldCheck} alt="" width="14.992" height="14.992" />
           {submitting ? 'Signing In…' : 'Sign In Securely'}
         </button>
 
         {formError && (
-          <p className="auth__alert" role="alert">
+          <p className="auth-alert" role="alert">
             {formError}
           </p>
         )}
       </form>
 
-      <div className="auth__note auth__note--success">
-        <p className="auth__note-title">Demo credentials</p>
-        <p className="auth__note-line">
-          Employee ID: <code>ECZ-A2-0018</code>
+      {/* Matches the account created by backend/src/scripts/seed_agents.js. */}
+      <div className="demo-note">
+        <p className="demo-note__title">Seeded test account</p>
+        <p className="demo-note__row">
+          Employee ID: <code>ECZ-A2-0007</code>
         </p>
-        <p className="auth__note-line auth__note-line--tight">
-          Password: <code>any 4+ characters</code>
+        <p className="demo-note__row">
+          Password: <code>Agent@12345</code>
         </p>
       </div>
 
-      <p className="login__support">
-        Having trouble? Contact IT support at{' '}
-        <span className="login__support-email">helpdesk@ecitizen.gov.in</span>
+      <p className="auth-support">
+        Having trouble? Contact IT support at <strong>helpdesk@ecitizen.gov.in</strong>
       </p>
     </section>
   );

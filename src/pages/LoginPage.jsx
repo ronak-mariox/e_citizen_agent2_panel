@@ -1,9 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import LoginForm from '@/components/LoginForm';
-import ROUTES from '@/constants/routes';
-import { useAuth } from '@/context/AuthContext';
-import AuthLayout from '@/layouts/AuthLayout';
+import AuthLayout from '../layouts/AuthLayout.jsx';
+import LoginForm from '../components/LoginForm.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -12,7 +11,7 @@ export function LoginPage() {
 
   // Set by ProtectedRoute when a guard bounced the agent here, so a re-login
   // returns them to the page they actually wanted.
-  const from = location.state?.from ?? ROUTES.DASHBOARD;
+  const from = location.state?.from ?? '/dashboard';
 
   async function handleSubmit({ employeeId, password }) {
     // signIn stores the session and throws an Error with a readable message;

@@ -1,0 +1,186 @@
+/* A closing tab — one row per case, no table.
+
+   Written for Completed Cases but kept generic: Rejected Cases is the same
+   screen with a different list and pill. Reuses .priority-badge and
+   .status-badge from dashboard.css. */
+
+.cases-page {
+  padding: var(--space-6);
+}
+
+.cases-page__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.cases-page__title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: var(--leading-lg);
+  color: var(--color-body);
+  font-variation-settings: 'opsz' 14;
+}
+
+.cases-page__count {
+  margin-top: 1.875px;
+  font-size: var(--text-sm);
+  line-height: 18.75px;
+  color: var(--color-dash-text);
+}
+
+.cases-page__export {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5.625px;
+  padding: 8.201px 11.951px;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 18.75px;
+  color: var(--color-body);
+  background-color: var(--color-surface);
+  border: var(--field-border) solid var(--color-dash-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-variation-settings: 'opsz' 14;
+}
+
+.cases-page__export:hover {
+  background-color: var(--color-page);
+}
+
+.cases-page__export img {
+  display: block;
+  width: 13.12px;
+  height: 13.12px;
+}
+
+.cases-list {
+  margin-top: 18.75px;
+  list-style: none;
+}
+
+.cases-list li + li {
+  margin-top: 11.25px;
+}
+
+.case-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: 15.701px;
+  text-decoration: none;
+  background-color: var(--color-surface);
+  border: var(--field-border) solid var(--color-dash-border);
+  border-radius: var(--radius-badge);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.case-row:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 16px -8px rgba(15, 23, 42, 0.18);
+}
+
+/* Solid green rather than a tint: the outcome is the point of the row. */
+.case-row__mark {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 37.497px;
+  height: 37.497px;
+  background-color: var(--color-agent-green);
+  border-radius: var(--radius-md);
+}
+
+.case-row__mark--rejected {
+  background-color: var(--color-negative);
+}
+
+.case-row__mark img {
+  display: block;
+  width: 18.749px;
+  height: 18.749px;
+}
+
+.case-row__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.case-row__title {
+  display: flex;
+  align-items: center;
+  gap: 7.5px;
+}
+
+.case-row__name {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22.5px;
+  color: var(--color-body);
+  font-variation-settings: 'opsz' 14;
+}
+
+.case-row__meta {
+  display: block;
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-dash-text);
+}
+
+/* Mint rather than the green used for an in-flight status, so a closed case
+   does not read as another stage of work. */
+.status-badge--completed {
+  color: #007a55;
+  background-color: #ecfdf5;
+}
+
+.status-badge--completed::before {
+  background-color: var(--color-sidebar-mark);
+}
+
+/* Nothing closed yet, on either outcome tab. The panel keeps the shape a list
+   would have taken, so an empty tab reads as work the agent does not have
+   rather than as a screen that failed to load. */
+.cases-blank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 18.75px;
+  padding: 60.701px;
+  background-color: var(--color-surface);
+  border: var(--field-border) solid var(--color-dash-border);
+  border-radius: var(--radius-badge);
+}
+
+.cases-blank img {
+  display: block;
+  width: 44.999px;
+  height: 44.999px;
+}
+
+.cases-blank__caption {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: 18.75px;
+  color: var(--color-dash-text);
+  text-align: center;
+}
+
+@media (max-width: 620px) {
+  .cases-page {
+    padding: var(--space-5);
+  }
+
+  .case-row {
+    flex-wrap: wrap;
+  }
+
+  .cases-blank {
+    padding: var(--space-7) var(--space-5);
+  }
+}

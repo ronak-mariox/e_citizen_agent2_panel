@@ -1,32 +1,84 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import ROUTES from '@/constants/routes';
-import DashboardPage from '@/pages/DashboardPage';
-import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
-import LoginPage from '@/pages/LoginPage';
-import ResetPasswordPage from '@/pages/ResetPasswordPage';
-import VerifyOtpPage from '@/pages/VerifyOtpPage';
-import ProtectedRoute, { PublicOnlyRoute } from './ProtectedRoute';
+import LoginPage from '../pages/LoginPage.jsx';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage.jsx';
+import VerifyOtpPage from '../pages/VerifyOtpPage.jsx';
+import ResetPasswordPage from '../pages/ResetPasswordPage.jsx';
+import DashboardPage from '../pages/DashboardPage.jsx';
+import AssignedQueuePage from '../pages/AssignedQueuePage.jsx';
+import CaseDetailPage from '../pages/CaseDetailPage.jsx';
+import CompletedCasesPage from '../pages/CompletedCasesPage.jsx';
+import RejectedCasesPage from '../pages/RejectedCasesPage.jsx';
+import GovProcessingPage from '../pages/GovProcessingPage.jsx';
+import GovernmentVisitsPage from '../pages/GovernmentVisitsPage.jsx';
+import AcknowledgementsPage from '../pages/AcknowledgementsPage.jsx';
+import PendingVerificationPage from '../pages/PendingVerificationPage.jsx';
+import WaitingCustomerPage from '../pages/WaitingCustomerPage.jsx';
+import ForwardedPage from '../pages/ForwardedPage.jsx';
+import NotificationsPage from '../pages/NotificationsPage.jsx';
+import SettingsPage from '../pages/SettingsPage.jsx';
+import SectionPlaceholderPage from '../pages/SectionPlaceholderPage.jsx';
+import ProtectedRoute, { PublicOnlyRoute } from './ProtectedRoute.jsx';
+import { NAV_ITEMS } from '../constants/dashboard.js';
+
+/* Sections with a real screen; everything else in the nav still gets the
+   placeholder. Listing a built section here keeps it from also being handed a
+   placeholder route on the same path. */
+const BUILT_SECTIONS = [
+  '/dashboard',
+  '/assigned-queue',
+  '/pending-verification',
+  '/waiting-customer',
+  '/forwarded',
+  '/gov-processing',
+  '/government-visits',
+  '/acknowledgements',
+  '/completed-cases',
+  '/rejected-cases',
+  '/notifications',
+  '/settings',
+];
+const PENDING_SECTIONS = NAV_ITEMS.filter((item) => !BUILT_SECTIONS.includes(item.to));
 
 export function AppRoutes() {
   return (
     <Routes>
       {/* Auth screens — closed to an agent who already has a session. */}
       <Route element={<PublicOnlyRoute />}>
-        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-        <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
-        <Route path={ROUTES.VERIFY_OTP} element={<VerifyOtpPage />} />
-        <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
 
       {/* Everything past sign-in. */}
       <Route element={<ProtectedRoute />}>
-        <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/assigned-queue" element={<AssignedQueuePage />} />
+        {/* The Agent 2 case screen — a handover to chase, not a queue item to
+            verify, which is what the Agent 1 detail page was. */}
+        <Route path="/assigned-queue/:applicationId" element={<CaseDetailPage />} />
+        <Route path="/pending-verification" element={<PendingVerificationPage />} />
+        <Route path="/waiting-customer" element={<WaitingCustomerPage />} />
+        <Route path="/forwarded" element={<ForwardedPage />} />
+        <Route path="/gov-processing" element={<GovProcessingPage />} />
+        <Route path="/government-visits" element={<GovernmentVisitsPage />} />
+        <Route path="/acknowledgements" element={<AcknowledgementsPage />} />
+        <Route path="/completed-cases" element={<CompletedCasesPage />} />
+        <Route path="/rejected-cases" element={<RejectedCasesPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        {PENDING_SECTIONS.map((item) => (
+          <Route key={item.to} path={item.to} element={<SectionPlaceholderPage />} />
+        ))}
       </Route>
 
-      <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
 
 export default AppRoutes;
+
+
+
