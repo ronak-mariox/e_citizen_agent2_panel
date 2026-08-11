@@ -80,7 +80,7 @@ export function PaymentRequestDialog({ record, onCancel, onSend }) {
                 className="case-field__input pay__amount-input"
                 inputMode="decimal"
                 value={amount}
-                placeholder="1,200.00"
+                placeholder="Enter the amount in rupees"
                 onChange={(event) => setAmount(event.target.value)}
               />
             </span>
@@ -116,7 +116,7 @@ export function PaymentRequestDialog({ record, onCancel, onSend }) {
               rows={3}
               value={remarks}
               maxLength={PAYMENT_REMARKS_LIMIT}
-              placeholder="Government registration charges have been revised as per the latest notification. The applicant must pay the remaining amount before final approval."
+              placeholder="Explain why this payment is needed"
               onChange={(event) => setRemarks(event.target.value)}
             />
             <span className="pay__counter">

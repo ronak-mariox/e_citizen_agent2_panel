@@ -91,7 +91,7 @@ export function ExtensionRequestDialog({ record, onCancel, onSend }) {
               className="dlg__input dlg__input--area"
               value={reason}
               required
-              placeholder="Explain why more time is needed (e.g. government office closed, additional docs required…)"
+              placeholder="Explain why more time is needed"
               onChange={(event) => setReason(event.target.value)}
             />
           </label>

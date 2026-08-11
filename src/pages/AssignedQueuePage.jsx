@@ -99,7 +99,7 @@ function AssignedQueuePage() {
             <input
               id="queue-search"
               type="search"
-              placeholder="Search…"
+              placeholder="Search by case ID or citizen name"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />

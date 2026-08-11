@@ -86,7 +86,7 @@ function PendingVerificationPage() {
             <input
               id="pending-search"
               type="search"
-              placeholder="Search…"
+              placeholder="Search by case ID or citizen name"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />

@@ -89,9 +89,9 @@ export const formatRupees = (amount) =>
     maximumFractionDigits: 2,
   })}`;
 
-/** Placeholder on the final remarks field — an example of the detail expected. */
+/** Placeholder on the final remarks field — asks for the detail expected. */
 export const REMARKS_EXAMPLE =
-  '"Documents submitted at BBMP Head Office. Officer confirmed verification within five working days."';
+  'Enter your closing remarks — where it was filed and what the officer confirmed';
 
 /**
  * The two ways a case ends. `tone` keys into the .decision--* modifiers in
@@ -115,8 +115,8 @@ export const UPLOAD_SOURCES = [
   { id: 'camera', label: 'Camera', tone: 'green', accept: 'image/*', capture: 'environment' },
 ];
 
-/** Shown as the input's placeholder so the expected format is unmistakable. */
-export const REFERENCE_EXAMPLE = 'e.g. GOV-2024-8821';
+/** Shown as the input's placeholder so what is wanted is unmistakable. */
+export const REFERENCE_EXAMPLE = 'Enter the government reference number';
 
 /* What has to be handed across the counter. The first two travel with every
    application; the rest depend on the service, which is why they start

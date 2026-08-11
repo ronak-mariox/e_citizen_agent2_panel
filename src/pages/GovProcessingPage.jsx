@@ -115,7 +115,7 @@ export function GovProcessingPage() {
             <input
               type="search"
               value={query}
-              placeholder="Search cases…"
+              placeholder="Search by case ID or citizen name"
               aria-label="Search cases"
               onChange={(event) => setQuery(event.target.value)}
             />

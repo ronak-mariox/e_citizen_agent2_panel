@@ -113,7 +113,7 @@ export function VisitFormDialog({ visit, onCancel, onSave }) {
               <input
                 className="visit-field__input"
                 value={form.officer}
-                placeholder="e.g. D.K. Rao"
+                placeholder="Enter the officer's name"
                 onChange={(event) => set('officer', event.target.value)}
               />
             </label>
@@ -127,7 +127,7 @@ export function VisitFormDialog({ visit, onCancel, onSave }) {
               <input
                 className="visit-field__input"
                 value={form.date}
-                placeholder="DD/MM/YYYY"
+                placeholder="Enter the visit date (DD/MM/YYYY)"
                 onChange={(event) => set('date', event.target.value)}
               />
             </label>
@@ -139,7 +139,7 @@ export function VisitFormDialog({ visit, onCancel, onSave }) {
               <input
                 className="visit-field__input"
                 value={form.time}
-                placeholder="-- : --"
+                placeholder="Enter the visit time (HH:MM)"
                 onChange={(event) => set('time', event.target.value)}
               />
             </label>
@@ -152,7 +152,7 @@ export function VisitFormDialog({ visit, onCancel, onSave }) {
             <input
               className="visit-field__input"
               value={form.purpose}
-              placeholder="e.g. Property Tax Submission"
+              placeholder="Enter the purpose of the visit"
               onChange={(event) => set('purpose', event.target.value)}
             />
           </label>
