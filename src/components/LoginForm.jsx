@@ -174,7 +174,7 @@ export function LoginForm({ onSubmit }) {
       </form>
 
       {/* Matches the account created by backend/src/scripts/seed_agents.js. */}
-      <div className="demo-note">
+      {/* <div className="demo-note">
         <p className="demo-note__title">Seeded test account</p>
         <p className="demo-note__row">
           Employee ID: <code>ECZ-A2-0007</code>
@@ -182,7 +182,7 @@ export function LoginForm({ onSubmit }) {
         <p className="demo-note__row">
           Password: <code>Agent@12345</code>
         </p>
-      </div>
+      </div> */}
 
       <p className="auth-support">
         Having trouble? Contact IT support at <strong>helpdesk@ecitizen.gov.in</strong>

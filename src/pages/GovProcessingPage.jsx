@@ -5,7 +5,6 @@ import DashboardLayout from '../layouts/DashboardLayout.jsx';
 import { PRIORITY_MODIFIER } from '../constants/dashboard.js';
 import { findCase } from '../constants/caseDetail.js';
 import { useCases } from '../context/CasesContext.jsx';
-import exportIcon from '../assets/icons/agent2/list/export.svg';
 import refreshIcon from '../assets/icons/agent2/list/refresh.svg';
 import searchIcon from '../assets/icons/agent2/list/search.svg';
 import statTotal from '../assets/icons/agent2/list/stat-total.svg';
@@ -86,10 +85,6 @@ export function GovProcessingPage() {
           </div>
 
           <div className="gov-page__actions">
-            <button className="gov-button" type="button" onClick={() => console.info('export')}>
-              <img src={exportIcon} alt="" width="13.12" height="13.12" />
-              Export
-            </button>
             <button className="gov-button" type="button" onClick={() => console.info('refresh')}>
               <img src={refreshIcon} alt="" width="13.12" height="13.12" />
               Refresh
