@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 
 import * as onboardingApi from '../../api/onboarding.js';
 import { getErrorMessage } from '../../api/client.js';
+import { useLiveRefresh } from '../../hooks/useLiveRefresh.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import '../../styles/onboarding.css';
 
@@ -249,29 +250,45 @@ export function OnboardingDialog() {
   /**
    * Ask whether an admin has got to it yet.
    *
-   * The waiting stage has no way of hearing about a verdict on its own — there
-   * are no sockets here — so it is a button rather than a poll. A poll would
-   * spend an agent's request budget all evening on an answer that arrives once.
+   * Also run quietly when live updates report a change to this account (an
+   * admin's verdict) or the tab regains focus — see useLiveRefresh below.
    *
    * Verification is folded into the session rather than refetched from
    * /auth/me: the gate in ProtectedRoute reads `documentsVerified`, so this is
    * the line that actually opens the console.
    */
-  const handleRecheck = () =>
-    run(async () => {
-      const fresh = await onboardingApi.getOnboarding();
+  const recheck = useCallback(async () => {
+    const fresh = await onboardingApi.getOnboarding();
 
-      if (fresh.isVerified) {
-        applyUserPatch({
-          documentsVerified: true,
-          verificationStatus: 'verified',
-          onboardingComplete: true,
-          pendingDocuments: [],
-        });
-      }
+    if (fresh.isVerified) {
+      applyUserPatch({
+        documentsVerified: true,
+        verificationStatus: 'verified',
+        onboardingComplete: true,
+        pendingDocuments: [],
+      });
+    }
 
-      return fresh;
-    });
+    return fresh;
+  }, [applyUserPatch]);
+
+  const handleRecheck = () => run(recheck);
+
+  /* The live version: skipped while an upload/remove is in flight so it cannot
+     land over that reply, and silent on failure. */
+  const busyRef = useRef(false);
+  useEffect(() => {
+    busyRef.current = busy;
+  });
+  useLiveRefresh(() => {
+    if (busyRef.current) return;
+
+    recheck()
+      .then((fresh) => {
+        if (!busyRef.current) setChecklist(fresh);
+      })
+      .catch(() => {});
+  }, ['agents']);
 
   const rows = checklist?.requiredDocuments ?? [];
   const done = rows.filter((row) => row.documentId && row.status !== 'rejected').length;

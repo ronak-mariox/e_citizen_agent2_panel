@@ -1,43 +1,87 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-import { ACTIVE_CASES } from '../constants/dashboard.js';
+import * as queueApi from '../api/queue.js';
+import { useLiveRefresh } from '../hooks/useLiveRefresh.js';
 
-/* Which cases the agent has closed, and what the department decided.
+/* The agent's own open cases, shared by the sidebar badge and the dashboard's
+ * Active Cases list — the two places that need "what is on my desk" without
+ * being the desk screen itself (that is AssignedQueuePage's own fetch, and
+ * Gov. Processing's — each reads the API directly, since neither is a light
+ * summary).
  *
- * The five-step workflow ends on one screen but its result shows up on three —
- * the assigned badge, the dashboard's Active Cases list and the Completed Cases
- * tab — so the outcome is held here rather than inside the case screen.
- *
- * In memory only: closing a case will be a POST once the agent API exists, and
- * until then a reload puts every case back in the queue. */
+ * One fetch here rather than one per consumer: the badge and the list are
+ * both reading the count in the same request cycle, and two independent
+ * fetches racing would occasionally show the badge and the list disagreeing.
+ */
+
+const PRIORITY_LABEL = { urgent: 'High', high: 'High', normal: 'Medium', low: 'Low' };
+
+/* Agent 1 forwards a case at `pending_submission`; the rest are Agent 2's own
+   workflow. Same fold AssignedQueuePage's own STAGE_OF uses. */
+const STAGE_OF = {
+  pending_submission: 'Pending Submission',
+  submitted_to_department: 'Gov. Processing',
+  in_progress: 'Gov. Processing',
+  escalated: 'Awaiting Decision',
+  on_hold: 'Awaiting Decision',
+};
+
+const initialsOf = (name) => {
+  const trimmed = name?.trim();
+  if (!trimmed) return '—';
+
+  return trimmed
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('');
+};
+
+const toSummaryRow = (application) => ({
+  id: application.id,
+  initials: initialsOf(application.citizen?.fullName),
+  name: application.citizen?.fullName ?? application.citizen?.mobile ?? 'Unknown',
+  priority: PRIORITY_LABEL[application.priority] ?? 'Medium',
+  meta: `${application.applicationNumber} · ${application.service?.name ?? '—'}`,
+  stage: STAGE_OF[application.status] ?? 'Pending Submission',
+});
 
 const CasesContext = createContext(null);
 
 export function CasesProvider({ children }) {
-  // { [applicationId]: { decision, closedAt } }
-  const [closed, setClosed] = useState({});
+  const [assigned, setAssigned] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const closeCase = useCallback((id, decision) => {
-    setClosed((current) => ({ ...current, [id]: { decision, closedAt: new Date() } }));
-  }, []);
+  // A case forwarded or reassigned elsewhere moves the badge without a reload.
+  const [reloadToken, setReloadToken] = useState(0);
+  useLiveRefresh(() => setReloadToken((token) => token + 1), ['applications']);
 
-  const value = useMemo(() => {
-    const decided = (decision) =>
-      ACTIVE_CASES.filter((item) => closed[item.id]?.decision === decision).map((item) => ({
-        ...item,
-        ...closed[item.id],
-      }));
+  useEffect(() => {
+    let cancelled = false;
+    const silent = reloadToken > 0;
 
-    return {
-      closed,
-      closeCase,
-      isClosed: (id) => Boolean(closed[id]),
-      // What is left to work, and what each closing tab shows.
-      assigned: ACTIVE_CASES.filter((item) => !closed[item.id]),
-      completed: decided('approved'),
-      rejected: decided('rejected'),
+    queueApi
+      .listMyCases({ limit: 50 })
+      .then((data) => {
+        if (!cancelled) setAssigned(data.applications.map(toSummaryRow));
+      })
+      .catch(() => {
+        // The badge and the dashboard card fall back to "nothing open" on a
+        // failed fetch rather than showing an error of their own — both are
+        // secondary reads, and AssignedQueuePage's own screen is where a
+        // failure actually needs reporting.
+        if (!cancelled && !silent) setAssigned([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
     };
-  }, [closed, closeCase]);
+  }, [reloadToken]);
+
+  const value = useMemo(() => ({ assigned, loading }), [assigned, loading]);
 
   return <CasesContext.Provider value={value}>{children}</CasesContext.Provider>;
 }

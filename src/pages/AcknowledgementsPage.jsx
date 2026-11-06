@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import DashboardLayout from '../layouts/DashboardLayout.jsx';
-import { ACKNOWLEDGEMENTS, ACK_STATES, isAckPending } from '../constants/acknowledgements.js';
+import { ACK_STATES } from '../constants/acknowledgements.js';
+import * as acknowledgementsApi from '../api/acknowledgements.js';
+import * as caseApi from '../api/case.js';
+import { getErrorMessage } from '../api/client.js';
+import { useLiveRefresh } from '../hooks/useLiveRefresh.js';
+import { assetUrl } from '../utils/format.js';
 import statUploaded from '../assets/icons/agent2/ack/stat-uploaded.svg';
 import statPending from '../assets/icons/agent2/ack/stat-pending.svg';
 import statReview from '../assets/icons/agent2/ack/stat-review.svg';
@@ -11,19 +16,56 @@ import viewIcon from '../assets/icons/agent2/case/doc-view.svg';
 
 import '../styles/acknowledgements.css';
 
-/* Every submission receipt the agent is holding, or still owes.
+/* Every case that has reached the acknowledgement step — backend `GET
+   /agent2/acknowledgements`, which returns a case the moment its government
+   reference number is saved (the end of step 3), whether or not the receipt
+   itself has been uploaded yet. Before that, a case is still Gov.
+   Processing's to show instead (see GovProcessingPage's own
+   `acknowledged=false`).
 
-   The case screen collects one acknowledgement at a time as step 4 of a single
-   case; this is the same receipt seen across every case at once, which is why
-   the row's only action is to attach the file rather than to work the case. */
+   Uploading works from either place: this table's own "Upload" action for a
+   Pending row, or the case screen's step 4 — both post to the same endpoint
+   (api/case.js's uploadAcknowledgement), so either one moves the case on to
+   step 5 identically. */
+
+// The backend caps `limit` at 100 (utils/pagination.js MAX_LIMIT).
+const PAGE_SIZE = 100;
+
 export function AcknowledgementsPage() {
-  // Receipts attached this session, { [applicationId]: fileName }. In memory
-  // only, the same as a closed case — see context/CasesContext.jsx.
-  const [receipts, setReceipts] = useState({});
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [uploadingId, setUploadingId] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
-  const rows = ACKNOWLEDGEMENTS.map((item) =>
-    receipts[item.id] ? { ...item, state: 'uploaded' } : item,
-  );
+  // A live refetch that fails keeps what is on screen without an error.
+  const silentRef = useRef(false);
+  useLiveRefresh(() => {
+    silentRef.current = true;
+    setReloadToken((token) => token + 1);
+  }, ['applications', 'wallet']);
+
+  useEffect(() => {
+    let cancelled = false;
+    const silent = silentRef.current;
+    silentRef.current = false;
+
+    acknowledgementsApi
+      .listAcknowledgements({ limit: PAGE_SIZE })
+      .then((data) => {
+        if (!cancelled) setRows(data.acknowledgements);
+      })
+      .catch((error) => {
+        if (!cancelled && !silent) setLoadError(getErrorMessage(error));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadToken]);
 
   const count = (state) => rows.filter((row) => row.state === state).length;
 
@@ -34,12 +76,20 @@ export function AcknowledgementsPage() {
     { id: 'review', tone: 'blue', icon: statReview, label: 'Under Review', value: count('review') },
   ];
 
-  // TODO: posts the receipt once the agent API exists; the row updates either way.
-  function handleUpload(id, file) {
+  async function handleUpload(id, file) {
     if (!file) return;
 
-    console.info('upload acknowledgement', id, file.name);
-    setReceipts((current) => ({ ...current, [id]: file.name }));
+    setUploadingId(id);
+    setLoadError(null);
+
+    try {
+      await caseApi.uploadAcknowledgement(id, file);
+      setReloadToken((token) => token + 1);
+    } catch (error) {
+      setLoadError(getErrorMessage(error));
+    } finally {
+      setUploadingId(null);
+    }
   }
 
   return (
@@ -49,6 +99,12 @@ export function AcknowledgementsPage() {
           <h1 className="ack-page__title">Acknowledgements</h1>
           <p className="ack-page__lead">Government-issued submission receipts</p>
         </div>
+
+        {loadError && (
+          <p className="notice notice--error" role="alert">
+            {loadError}
+          </p>
+        )}
 
         <div className="ack-stats">
           {stats.map((stat) => (
@@ -72,57 +128,63 @@ export function AcknowledgementsPage() {
             <span role="columnheader">Action</span>
           </div>
 
-          {rows.map((row) => {
-            const status = ACK_STATES[row.state];
+          {loading && <p className="ack-empty">Loading…</p>}
 
-            return (
-              <div className="ack-table__row" role="row" key={row.id}>
-                <Link className="ack-cell ack-cell--id" to={`/assigned-queue/${row.id}`}>
-                  {row.id}
-                </Link>
+          {!loading &&
+            rows.map((row) => {
+              const status = ACK_STATES[row.state];
 
-                <span className="ack-cell ack-cell--customer">
-                  <span className="avatar avatar--green">{row.initials}</span>
-                  {row.customer}
-                </span>
+              return (
+                <div className="ack-table__row" role="row" key={row.id}>
+                  <Link className="ack-cell ack-cell--id" to={`/assigned-queue/${row.id}`}>
+                    {row.applicationNumber}
+                  </Link>
 
-                <span className="ack-cell">{row.service}</span>
+                  <span className="ack-cell ack-cell--customer">
+                    <span className="avatar avatar--green">
+                      {(row.citizenName ?? '—').slice(0, 2).toUpperCase()}
+                    </span>
+                    {row.citizenName ?? 'Unknown'}
+                  </span>
 
-                <span className="ack-cell ack-cell--ref">{row.ref ?? '—'}</span>
+                  <span className="ack-cell">{row.service ?? '—'}</span>
 
-                <span className="ack-cell">
-                  <span className={`ack-pill ack-pill--${status.tone}`}>{status.label}</span>
-                </span>
+                  <span className="ack-cell ack-cell--ref">{row.referenceNumber ?? '—'}</span>
 
-                <span className="ack-cell">
-                  {/* A label rather than a button: the file picker is the action,
-                      so there is nothing to click through to. */}
-                  {isAckPending(row) ? (
-                    <label className="ack-action ack-action--upload">
-                      <input
-                        className="ack-action__input"
-                        type="file"
-                        accept="image/*,.pdf"
-                        onChange={(event) => handleUpload(row.id, event.target.files?.[0])}
-                      />
-                      <img src={uploadIcon} alt="" width="11.247" height="11.247" />
-                      Upload
-                    </label>
-                  ) : (
-                    // TODO: opens the stored receipt once the documents API exists.
-                    <button
-                      className="ack-action"
-                      type="button"
-                      onClick={() => console.info('view acknowledgement', row.id)}
-                    >
-                      <img src={viewIcon} alt="" width="11.247" height="11.247" />
-                      View
-                    </button>
-                  )}
-                </span>
-              </div>
-            );
-          })}
+                  <span className="ack-cell">
+                    <span className={`ack-pill ack-pill--${status.tone}`}>{status.label}</span>
+                  </span>
+
+                  <span className="ack-cell">
+                    {/* A label rather than a button: the file picker is the action,
+                        so there is nothing to click through to. */}
+                    {row.state === 'pending' ? (
+                      <label className="ack-action ack-action--upload">
+                        <input
+                          className="ack-action__input"
+                          type="file"
+                          accept="image/*,.pdf"
+                          disabled={uploadingId === row.id}
+                          onChange={(event) => handleUpload(row.id, event.target.files?.[0])}
+                        />
+                        <img src={uploadIcon} alt="" width="11.247" height="11.247" />
+                        {uploadingId === row.id ? 'Uploading…' : 'Upload'}
+                      </label>
+                    ) : (
+                      <a
+                        className="ack-action"
+                        href={row.fileUrl ? assetUrl(row.fileUrl) : '#'}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <img src={viewIcon} alt="" width="11.247" height="11.247" />
+                        View
+                      </a>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
         </section>
       </main>
     </DashboardLayout>

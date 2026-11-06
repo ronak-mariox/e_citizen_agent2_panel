@@ -305,6 +305,31 @@
   color: var(--color-danger);
 }
 
+.settings-field__success {
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-positive);
+}
+
+/* The Address section under the editable grid — this app never had a section
+   like it before (Agent 1's panel adds one for Assigned Services), so it is
+   new here rather than reused. */
+.settings-scope {
+  padding-top: 18.75px;
+  margin-top: 18.75px;
+  border-top: 1px solid var(--color-dash-border);
+}
+
+.settings-scope__title {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: var(--leading-sm);
+  color: var(--color-body);
+  font-variation-settings: 'opsz' 14;
+}
+
 /* Most of these fields are the agent's to change; the two that are not are
    called out here rather than disabled, so the values stay readable. */
 .settings-note {

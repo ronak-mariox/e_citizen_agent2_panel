@@ -1,34 +1,86 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import DashboardLayout from '../layouts/DashboardLayout.jsx';
 import { PRIORITY_MODIFIER } from '../constants/dashboard.js';
-import { findCase } from '../constants/caseDetail.js';
-import { useCases } from '../context/CasesContext.jsx';
+import * as queueApi from '../api/queue.js';
+import { getErrorMessage } from '../api/client.js';
+import { useLiveRefresh } from '../hooks/useLiveRefresh.js';
+import { downloadCsv, todayStamp } from '../utils/exportCsv.js';
 import exportIcon from '../assets/icons/agent2/list/export.svg';
 import rejectedMark from '../assets/icons/application/decision-reject.svg';
 import emptyCases from '../assets/icons/agent2/list/empty-cases.svg';
 
 import '../styles/cases-list.css';
 
-/* Cases the department turned down.
+/* Cases the department turned down — the same screen as Completed Cases with
+   the other outcome, both narrowed off the one Assigned Cases endpoint. See
+   CompletedCasesPage.jsx. */
 
-   The same screen as Completed Cases with the other outcome — see
-   CompletedCasesPage.jsx. A rejected case closes the moment the agent records
-   the ruling: there is no certificate to attach and nothing to complete. */
+const PRIORITY_LABEL = { urgent: 'High', high: 'High', normal: 'Medium', low: 'Low' };
+
+// The backend's own cap (MAX_LIMIT, utils/pagination.js) — this screen has no
+// pagination UI of its own, so whatever it fetches is the whole list an agent
+// sees, and Export has to read the same rows rather than a separate fetch.
+const PAGE_SIZE = 100;
+
+/** One row of the exported CSV — reads straight off the same row objects the
+    list renders from (see api/queue.js's listMyCases). */
+const EXPORT_COLUMNS = [
+  { label: 'Application Number', value: (row) => row.applicationNumber },
+  { label: 'Reference Number', value: (row) => row.referenceNumber },
+  { label: 'Citizen Name', value: (row) => row.citizen?.fullName ?? '' },
+  { label: 'Citizen Mobile', value: (row) => row.citizen?.mobile ?? '' },
+  { label: 'Service', value: (row) => row.service?.name ?? '' },
+  { label: 'Department', value: (row) => row.department?.name ?? '' },
+  { label: 'Priority', value: (row) => PRIORITY_LABEL[row.priority] ?? row.priority },
+  { label: 'Rejection Reason', value: (row) => row.decision?.reason ?? '' },
+  { label: 'Rejected At', value: (row) => row.decision?.at ?? '' },
+];
+
 export function RejectedCasesPage() {
-  const { rejected } = useCases();
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
-  // TODO: generates the CSV once the reports endpoint exists.
+  // Bumped by live updates; such a refetch keeps the list and stays quiet if it fails.
+  const [reloadToken, setReloadToken] = useState(0);
+  const silentRef = useRef(false);
+  useLiveRefresh(() => {
+    silentRef.current = true;
+    setReloadToken((token) => token + 1);
+  }, ['applications', 'wallet']);
+
+  useEffect(() => {
+    let cancelled = false;
+    const silent = silentRef.current;
+    silentRef.current = false;
+
+    queueApi
+      .listMyCases({ status: 'rejected', limit: PAGE_SIZE })
+      .then((data) => {
+        if (cancelled) return;
+        setRows(data.applications);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        if (!cancelled && !silent) {
+          setLoadError(getErrorMessage(error));
+          setRows([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadToken]);
+
   function handleExport() {
-    console.info('export rejected cases', rejected.length);
+    downloadCsv(`rejected-cases-${todayStamp()}.csv`, EXPORT_COLUMNS, rows);
   }
-
-  const metaFor = (item) => {
-    const record = findCase(item.id);
-    if (!record) return item.meta;
-
-    return `${record.id} · ${record.service} · ${record.department}`;
-  };
 
   return (
     <DashboardLayout>
@@ -36,7 +88,9 @@ export function RejectedCasesPage() {
         <div className="cases-page__head">
           <div>
             <h1 className="cases-page__title">Rejected Cases</h1>
-            <p className="cases-page__count">{rejected.length} cases</p>
+            <p className="cases-page__count">
+              {loading ? 'Loading…' : `${rows.length} case${rows.length === 1 ? '' : 's'}`}
+            </p>
           </div>
 
           <button className="cases-page__export" type="button" onClick={handleExport}>
@@ -45,36 +99,47 @@ export function RejectedCasesPage() {
           </button>
         </div>
 
-        {rejected.length === 0 ? (
+        {loadError && (
+          <p className="notice notice--error" role="alert">
+            {loadError}
+          </p>
+        )}
+
+        {!loading && rows.length === 0 ? (
           <div className="cases-blank">
             <img src={emptyCases} alt="" width="44.999" height="44.999" />
             <p className="cases-blank__caption">No rejected cases yet</p>
           </div>
         ) : (
           <ul className="cases-list">
-            {rejected.map((item) => (
-              <li key={item.id}>
-                <Link className="case-row" to={`/assigned-queue/${item.id}`}>
-                  <span className="case-row__mark case-row__mark--rejected">
-                    <img src={rejectedMark} alt="" width="18.749" height="18.749" />
-                  </span>
+            {rows.map((row) => {
+              const name = row.citizen?.fullName ?? row.citizen?.mobile ?? 'Unknown';
+              const priority = PRIORITY_LABEL[row.priority] ?? 'Medium';
 
-                  <span className="case-row__body">
-                    <span className="case-row__title">
-                      <span className="case-row__name">{item.name}</span>
-                      <span
-                        className={`priority-badge priority-badge--${PRIORITY_MODIFIER[item.priority]}`}
-                      >
-                        {item.priority}
+              return (
+                <li key={row.id}>
+                  <Link className="case-row" to={`/assigned-queue/${row.id}`}>
+                    <span className="case-row__mark case-row__mark--rejected">
+                      <img src={rejectedMark} alt="" width="18.749" height="18.749" />
+                    </span>
+
+                    <span className="case-row__body">
+                      <span className="case-row__title">
+                        <span className="case-row__name">{name}</span>
+                        <span className={`priority-badge priority-badge--${PRIORITY_MODIFIER[priority]}`}>
+                          {priority}
+                        </span>
+                      </span>
+                      <span className="case-row__meta">
+                        {row.applicationNumber} · {row.service?.name ?? '—'} · {row.department?.name ?? '—'}
                       </span>
                     </span>
-                    <span className="case-row__meta">{metaFor(item)}</span>
-                  </span>
 
-                  <span className="status-badge status-badge--rejected">Rejected</span>
-                </Link>
-              </li>
-            ))}
+                    <span className="status-badge status-badge--rejected">Rejected</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>

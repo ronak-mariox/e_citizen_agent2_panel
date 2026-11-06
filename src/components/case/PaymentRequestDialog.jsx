@@ -17,6 +17,8 @@ import sendIcon from '../../assets/icons/application/note-send.svg';
    panel below the fields shows what the citizen will end up owing in total:
    it is the number Agent 1 will have to quote. */
 export function PaymentRequestDialog({ record, onCancel, onSend }) {
+  // Through Agent 1 first, or straight to the applicant — the server decides.
+  const viaAgent1 = record.extraPaymentRoute === 'agent1';
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState(PAYMENT_REASONS[0]);
   const [remarks, setRemarks] = useState('');
@@ -57,8 +59,10 @@ export function PaymentRequestDialog({ record, onCancel, onSend }) {
               Request Additional Payment
             </h2>
             <p className="pay__lead">
-              Request an additional payment from the applicant. This request will be sent to Agent
-              1, who will notify the customer to complete the remaining payment.
+              Request an additional payment from the applicant.{' '}
+              {viaAgent1
+                ? 'It goes to Agent 1 first, who sends it on to the applicant.'
+                : 'It goes straight to the applicant.'}
             </p>
           </div>
 
@@ -180,8 +184,9 @@ export function PaymentRequestDialog({ record, onCancel, onSend }) {
             </span>
           </label>
 
+          {viaAgent1 ? null : (
           <div className="case-field">
-            <span className="case-field__label">Notify Agent 1</span>
+            <span className="case-field__label">Notify the applicant</span>
             <label className="check check--blue">
               <input
                 className="check__input"
@@ -191,19 +196,21 @@ export function PaymentRequestDialog({ record, onCancel, onSend }) {
               />
               <span className="check__box" aria-hidden="true" />
               <span className="check__label check__label--sm">
-                Send notification to Agent 1 immediately
+                Send the applicant a notification now
               </span>
             </label>
-            <span className="case-field__hint">Agent 1 will be notified about this request.</span>
+            <span className="case-field__hint">They pay it from the app, to the company.</span>
           </div>
+          )}
         </div>
 
         <p className="pay__note">
           <img src={infoIcon} alt="" width="14.992" height="14.992" />
           <span>
-            After submitting this request, the application status will change to{' '}
-            <strong>&quot;Waiting for Re-Payment&quot;</strong>. Agent 1 will receive a notification
-            and request the applicant to complete the additional payment.
+            {viaAgent1
+              ? 'Agent 1 is notified and sends this request on to the applicant.'
+              : 'The applicant is asked straight away.'}{' '}
+            They pay it from the app into the company wallet, and the company pays it on to you.
           </span>
         </p>
 
@@ -214,7 +221,7 @@ export function PaymentRequestDialog({ record, onCancel, onSend }) {
           </button>
           <button className="pay__send" type="submit" disabled={!ready}>
             <img src={sendIcon} alt="" width="13.12" height="13.12" />
-            Send to Agent 1
+            {viaAgent1 ? 'Send to Agent 1' : 'Send to Applicant'}
           </button>
         </div>
       </form>

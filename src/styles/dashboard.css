@@ -692,7 +692,10 @@
   height: var(--icon-size);
 }
 
-.topbar__bell::after {
+/* Was unconditional — every agent saw a red dot whether or not they had
+   anything unread. Now only drawn while Topbar's own unread poll says
+   there is something, via this modifier rather than the bare selector. */
+.topbar__bell--unread::after {
   position: absolute;
   top: 3.75px;
   left: 18.74px;
