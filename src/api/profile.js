@@ -46,4 +46,19 @@ export async function updateMyProfile(data) {
   return response.data.data.profile;
 }
 
-export default { uploadPhoto, removePhoto, getMyProfile, updateMyProfile };
+/** Where the company's RazorpayX payouts are sent. The full account number is
+    never sent back — only `accountNumberMasked`; leave it out of a save to
+    keep the saved one. */
+export async function getPayoutAccount() {
+  const response = await client.get('/profile/me/payout-account');
+
+  return response.data.data.account;
+}
+
+export async function savePayoutAccount(data) {
+  const response = await client.put('/profile/me/payout-account', data);
+
+  return response.data.data.account;
+}
+
+export default { uploadPhoto, removePhoto, getMyProfile, updateMyProfile, getPayoutAccount, savePayoutAccount };

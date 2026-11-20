@@ -94,6 +94,13 @@
   font-variation-settings: 'opsz' 14;
 }
 
+.settings-card__lead {
+  margin: 4px 0 16px;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--color-muted, #62748e);
+}
+
 /* --------------------------------------------------------- identity row -- */
 
 .settings-identity {

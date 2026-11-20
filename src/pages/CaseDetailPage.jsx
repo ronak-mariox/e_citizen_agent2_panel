@@ -962,8 +962,9 @@ function RejectDialog({ record, remarks, saving, error, onCancel, onConfirm }) {
         </h2>
 
         <p className="modal__body">
-          This will mark <strong>{record.id}</strong> as rejected by the government and close the
-          case. This cannot be undone.
+          This records the government's rejection of <strong>{record.id}</strong> and sends it back
+          to Agent 1, who is told the reason and asks the applicant to correct it. Once corrected,
+          it comes back to you to file again.
         </p>
 
         <p className="modal__label">

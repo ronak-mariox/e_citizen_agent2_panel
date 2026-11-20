@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import Sidebar from '../components/dashboard/Sidebar.jsx';
 import Topbar from '../components/dashboard/Topbar.jsx';
+import PayoutReminder from '../components/PayoutReminder.jsx';
 import '../styles/dashboard.css';
 
 export function DashboardLayout({ children }) {
@@ -20,6 +21,7 @@ export function DashboardLayout({ children }) {
       />
       <div className="dash__main">
         <Topbar onToggleSidebar={() => setNavToggled((toggled) => !toggled)} />
+        <PayoutReminder />
         {children}
       </div>
     </div>

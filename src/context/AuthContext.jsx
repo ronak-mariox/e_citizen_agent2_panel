@@ -17,6 +17,7 @@ import {
   getStoredUser,
   saveSession,
 } from "../utils/session";
+import { resetPayoutAccount } from "../hooks/usePayoutAccount.js";
 
 const AuthContext = createContext(null);
 
@@ -106,6 +107,7 @@ export function AuthProvider({ children }) {
       // caller's navigate() unreached, stranding the agent on a screen whose
       // session has already been cleared.
     } finally {
+      resetPayoutAccount();
       endSession();
     }
   }, [endSession]);

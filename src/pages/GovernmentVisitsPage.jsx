@@ -88,8 +88,14 @@ export function GovernmentVisitsPage() {
         if (cancelled) return;
 
         setVisits(withDisplayState(visitData.visits));
+
+        /* A case whose department visit is already done does not need
+           another one booked, so it is not offered here. */
+        const visited = new Set(
+          visitData.visits.filter((visit) => visit.status === 'completed').map((visit) => visit.applicationId)
+        );
         setCases(
-          caseData.applications.map((application) => ({
+          caseData.applications.filter((application) => !visited.has(application.id)).map((application) => ({
             id: application.id,
             applicationNumber: application.applicationNumber,
             citizenName: application.citizen?.fullName ?? application.citizen?.mobile ?? null,

@@ -15,7 +15,7 @@ import { client } from './client.js';
  *   (`false`) a department receipt on file — how Gov. Processing and
  *   Acknowledgements split the same desk. Omit for the unfiltered list.
  */
-export async function listMyCases({ page, limit, search, status, priority, acknowledged } = {}) {
+export async function listMyCases({ page, limit, search, status, priority, acknowledged, returned } = {}) {
   const response = await client.get('/agent2/applications', {
     // Undefined values are dropped by axios, so an unfiltered call sends no
     // query string rather than `?status=undefined`.
@@ -26,6 +26,7 @@ export async function listMyCases({ page, limit, search, status, priority, ackno
       status: status === 'all' ? undefined : status,
       priority: priority === 'all' ? undefined : priority,
       acknowledged,
+      returned,
     },
   });
 

@@ -5,6 +5,7 @@ import tabLogout from '../assets/icons/settings/tab-logout.svg';
 
 export const SETTINGS_TABS = [
   { id: 'profile', label: 'Profile', icon: tabProfile },
+  { id: 'payout', label: 'Payout Account', icon: tabProfile },
   { id: 'password', label: 'Password', icon: tabPassword },
   { id: 'security', label: 'Security', icon: tabSecurity },
 ];

@@ -13,9 +13,24 @@ import emptyCases from '../assets/icons/agent2/list/empty-cases.svg';
 
 import '../styles/cases-list.css';
 
-/* Cases the department turned down — the same screen as Completed Cases with
-   the other outcome, both narrowed off the one Assigned Cases endpoint. See
+/* Cases the department turned down. A department rejection sends the case
+   back to Agent 1 to correct rather than closing it, so this lists every case
+   this agent sent back, wherever it is now — with Agent 1, back here to file
+   again, or closed. Narrowed off the one Assigned Cases endpoint, like
    CompletedCasesPage.jsx. */
+
+/** The department's latest reason, which is why it went back. */
+const lastReturnOf = (row) => row.departmentReturns?.at(-1) ?? null;
+
+/** Where a sent-back case is now. */
+const stageOf = (status) => {
+  if (status === 'rejected' || status === 'cancelled') return { label: 'Closed', modifier: 'rejected' };
+  if (['pending_submission', 'submitted_to_department', 'in_progress', 'escalated', 'on_hold'].includes(status)) {
+    return { label: 'Back with you', modifier: 'gov' };
+  }
+  if (status === 'completed') return { label: 'Completed', modifier: 'completed' };
+  return { label: 'With Agent 1', modifier: 'pending' };
+};
 
 const PRIORITY_LABEL = { urgent: 'High', high: 'High', normal: 'Medium', low: 'Low' };
 
@@ -34,8 +49,9 @@ const EXPORT_COLUMNS = [
   { label: 'Service', value: (row) => row.service?.name ?? '' },
   { label: 'Department', value: (row) => row.department?.name ?? '' },
   { label: 'Priority', value: (row) => PRIORITY_LABEL[row.priority] ?? row.priority },
-  { label: 'Rejection Reason', value: (row) => row.decision?.reason ?? '' },
-  { label: 'Rejected At', value: (row) => row.decision?.at ?? '' },
+  { label: 'Rejection Reason', value: (row) => lastReturnOf(row)?.remarks ?? '' },
+  { label: 'Rejected At', value: (row) => lastReturnOf(row)?.at ?? '' },
+  { label: 'Now', value: (row) => stageOf(row.status).label },
 ];
 
 export function RejectedCasesPage() {
@@ -57,7 +73,7 @@ export function RejectedCasesPage() {
     silentRef.current = false;
 
     queueApi
-      .listMyCases({ status: 'rejected', limit: PAGE_SIZE })
+      .listMyCases({ returned: true, limit: PAGE_SIZE })
       .then((data) => {
         if (cancelled) return;
         setRows(data.applications);
@@ -115,6 +131,8 @@ export function RejectedCasesPage() {
             {rows.map((row) => {
               const name = row.citizen?.fullName ?? row.citizen?.mobile ?? 'Unknown';
               const priority = PRIORITY_LABEL[row.priority] ?? 'Medium';
+              const stage = stageOf(row.status);
+              const reason = lastReturnOf(row)?.remarks;
 
               return (
                 <li key={row.id}>
@@ -133,9 +151,10 @@ export function RejectedCasesPage() {
                       <span className="case-row__meta">
                         {row.applicationNumber} · {row.service?.name ?? '—'} · {row.department?.name ?? '—'}
                       </span>
+                      {reason && <span className="case-row__meta">Reason: {reason}</span>}
                     </span>
 
-                    <span className="status-badge status-badge--rejected">Rejected</span>
+                    <span className={`status-badge status-badge--${stage.modifier}`}>{stage.label}</span>
                   </Link>
                 </li>
               );
