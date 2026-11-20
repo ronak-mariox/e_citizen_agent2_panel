@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import * as authApi from "../api/auth";
+import { startLive, stopLive } from "../api/live";
 import { getErrorField, getErrorMessage, setSessionExpiredHandler } from "../api/client";
 import { PANEL_ROLE, PANEL_WRONG_ROLE_MESSAGE } from "../constants/auth";
 import {
@@ -16,6 +17,7 @@ import {
   getStoredUser,
   saveSession,
 } from "../utils/session";
+import { resetPayoutAccount } from "../hooks/usePayoutAccount.js";
 
 const AuthContext = createContext(null);
 
@@ -36,6 +38,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     setSessionExpiredHandler(endSession);
   }, [endSession]);
+
+  // Live updates run while signed in, and stop on the way out — see api/live.js.
+  useEffect(() => {
+    if (status === "authenticated") startLive();
+    else stopLive();
+  }, [status]);
 
   // Check logged-in user on page refresh
   useEffect(() => {
@@ -99,6 +107,7 @@ export function AuthProvider({ children }) {
       // caller's navigate() unreached, stranding the agent on a screen whose
       // session has already been cleared.
     } finally {
+      resetPayoutAccount();
       endSession();
     }
   }, [endSession]);

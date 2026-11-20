@@ -692,7 +692,10 @@
   height: var(--icon-size);
 }
 
-.topbar__bell::after {
+/* Was unconditional — every agent saw a red dot whether or not they had
+   anything unread. Now only drawn while Topbar's own unread poll says
+   there is something, via this modifier rather than the bare selector. */
+.topbar__bell--unread::after {
   position: absolute;
   top: 3.75px;
   left: 18.74px;
@@ -1529,4 +1532,44 @@
 
 .logout-modal__confirm:hover {
   background-color: #c10007;
+}
+
+/* ------------------------------------------------------ payout reminder -- */
+/* No bank account or UPI ID yet — see components/PayoutReminder.jsx. */
+.payout-reminder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 24px 0;
+  padding: 12px 16px;
+  border: 1px solid #fee685;
+  border-radius: 12px;
+  background-color: #fffbeb;
+}
+
+.payout-reminder__text {
+  margin: 0;
+  flex: 1 1 320px;
+  font-size: 13px;
+  line-height: 19px;
+  color: #7b3306;
+}
+
+.payout-reminder__link {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background-color: #009966;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .payout-reminder {
+    margin: 12px 16px 0;
+  }
 }

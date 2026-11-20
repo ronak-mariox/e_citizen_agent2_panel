@@ -220,6 +220,50 @@
   color: var(--color-dash-text);
 }
 
+/* Agent 1's verification notes — a running list, unlike the single handover
+   remark above, so each entry is its own tile the same way a document row is. */
+.case-note-list {
+  margin-top: 11.25px;
+  list-style: none;
+}
+
+.case-note-item {
+  padding: 7.5px 11.951px;
+  background-color: var(--color-tile-soft);
+  border-radius: var(--space-4);
+}
+
+.case-note-item + .case-note-item {
+  margin-top: 7.5px;
+}
+
+.case-note-item__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.case-note-item__author {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-body);
+}
+
+.case-note-item__time {
+  font-size: 10.5px;
+  color: var(--color-dash-text);
+  white-space: nowrap;
+}
+
+.case-note-item__text {
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  line-height: 18.75px;
+  color: var(--color-dash-text);
+  overflow-wrap: anywhere;
+}
+
 .doc-list {
   margin-top: 11.25px;
   list-style: none;
@@ -505,9 +549,11 @@
 /* Sized to the mockup: 551px wide and about 690 tall. The height matters — at
    the previous rhythm the card ran past the viewport and the modal grew a
    scrollbar, which the design does not have. */
-.modal__card--wide {
-  width: 551px;
-  padding: 22.5px;
+/* Both classes, because the base .modal__card further down this file has the
+   same specificity and, coming later, used to win — the dialog drew at 420px. */
+.modal__card.modal__card--wide {
+  width: 680px;
+  padding: 28px;
   text-align: left;
 }
 
@@ -626,34 +672,53 @@
   color: var(--color-dash-text);
 }
 
-/* The rupee sign belongs to the field, not to the value being typed. */
+/* The rupee sign belongs to the field, not to the value being typed.
+
+   The wrapper takes the field's top margin and the input inside gives its own
+   up, so "the middle of the wrapper" and "the middle of the input" are the same
+   line and the sign or dot stays centred at any width. The selectors carry the
+   wrapper so they outrank .case-field__input and .modal__card .case-field__input,
+   which come later in this file and used to put the text back under the icon. */
 .pay__amount,
 .pay__priority {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 3.75px;
 }
 
-.pay__currency {
+.modal__card .pay__amount .case-field__input,
+.modal__card .pay__priority .case-field__input {
+  margin-top: 0;
+}
+
+.pay__currency,
+.pay__dot {
   position: absolute;
   top: 50%;
-  left: 11.951px;
-  font-size: var(--text-sm);
-  color: var(--color-dash-text);
+  z-index: 1;
+  pointer-events: none;
   transform: translateY(-50%);
 }
 
-.pay__amount-input {
+.pay__currency {
+  left: 12px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-dash-text);
+}
+
+.pay__amount .pay__amount-input {
   padding-left: 30px;
 }
 
 .pay__dot {
-  position: absolute;
-  top: 50%;
   left: 13px;
-  width: 7.491px;
-  height: 7.491px;
+  width: 8px;
+  height: 8px;
   border-radius: var(--radius-pill);
-  transform: translateY(-50%);
 }
 
 .pay__dot--amber {
@@ -668,8 +733,9 @@
   background-color: var(--color-negative);
 }
 
-.pay__priority-input {
+.pay__priority .pay__priority-input {
   padding-left: 30px;
+  text-overflow: ellipsis;
 }
 
 /* The count sits inside the box, bottom right, as a property of the field
@@ -962,6 +1028,30 @@
   font-variation-settings: 'opsz' 14;
 }
 
+/* A field borrowed from the main form (case-field__input) otherwise inherits
+   the plain modal card's centered text — fine for a label, wrong for
+   something somebody is typing into. */
+.modal__card .case-field__input {
+  margin-top: 3.75px;
+  text-align: left;
+}
+
+/* Same marker as the other required fields on this screen (see
+   .pay__required) — one asterisk, colored to match. */
+.modal__required {
+  color: var(--color-negative);
+}
+
+/* Why the confirm button is still disabled, directly under the field it is
+   waiting on. */
+.modal__hint {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-negative);
+  text-align: left;
+}
+
 .modal__upload {
   display: flex;
   align-items: center;
@@ -1030,6 +1120,21 @@
 
 .modal__confirm:hover {
   background-color: var(--color-agent-green-hover);
+}
+
+.modal__confirm:disabled {
+  background-color: var(--color-dash-border);
+  cursor: not-allowed;
+}
+
+/* Reject Application — the red the panel already uses for a rejected status
+   (.decision--rejected), not the green every other confirm button wears. */
+.modal__confirm--danger {
+  background-color: #e7000b;
+}
+
+.modal__confirm--danger:hover {
+  background-color: #c10007;
 }
 
 /* ------------------------------------------------- case dialogs (.dlg) -- */
@@ -1437,6 +1542,25 @@
   height: var(--icon-size);
 }
 
+/* A closed case's own record of how it ended — Completed keeps this same
+   green, Rejected switches to the panel's rejected red. Disabled rather than
+   removed: the label is the point, not a button anyone is meant to press. */
+.case-complete:disabled {
+  cursor: not-allowed;
+}
+
+.case-complete:disabled:hover {
+  background-color: var(--color-agent-green);
+}
+
+.case-complete--rejected {
+  background-color: #e7000b;
+}
+
+.case-complete--rejected:hover {
+  background-color: #e7000b;
+}
+
 /* ---------------------------------------------- step 4 acknowledgement -- */
 
 .upload-row {
@@ -1784,6 +1908,113 @@
   background-color: #e08800;
 }
 
+/* -------------------------------------------- additional payment requests */
+
+.case-payment-requests {
+  margin-top: var(--space-5);
+}
+
+.case-payment-list {
+  margin-top: 7.5px;
+  list-style: none;
+}
+
+.case-payment-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9.375px;
+  padding: 9.375px 11.951px;
+  border: var(--field-border) solid var(--color-dash-border);
+  border-radius: var(--space-4);
+}
+
+.case-payment-row + .case-payment-row {
+  margin-top: 7.5px;
+}
+
+.case-payment-row__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.case-payment-row__amount {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-body);
+}
+
+.case-payment-row__reason {
+  font-size: var(--text-xs);
+  color: var(--color-dash-text);
+}
+
+.case-payment-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7.5px;
+}
+
+.case-payment-row__method {
+  height: 30px;
+  padding: 0 8px;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-body);
+  background-color: var(--color-surface);
+  border: var(--field-border) solid var(--color-dash-border);
+  border-radius: var(--radius-sm);
+}
+
+.case-payment-row__button {
+  padding: 6.75px 12px;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-body);
+  background: none;
+  border: var(--field-border) solid var(--color-dash-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.case-payment-row__button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.case-payment-row__button--paid {
+  color: #ffffff;
+  background-color: var(--color-agent-green);
+  border-color: var(--color-agent-green);
+}
+
+.case-payment-row__button--paid:not(:disabled):hover {
+  background-color: var(--color-agent-green-hover);
+}
+
+.case-payment-row__status {
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+  border-radius: 999px;
+}
+
+.case-payment-row__status--paid {
+  color: var(--color-agent-green);
+  background-color: rgba(0, 153, 102, 0.12);
+}
+
+.case-payment-row__status--waived,
+.case-payment-row__status--cancelled {
+  color: var(--color-dash-text);
+  background-color: var(--color-surface-muted, rgba(0, 0, 0, 0.05));
+}
+
 .case-draft {
   padding: 10.076px 19.451px;
   font-family: inherit;
@@ -1857,4 +2088,82 @@
   .case-form {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* A pending request's stage, beside its Waive / Cancel actions. */
+.case-payment-row__status--pending {
+  color: #ca3500;
+  background-color: #fff7ed;
+}
+
+/* Payment from Company — what the admin has released to this agent. */
+.case-payout__received {
+  display: flex;
+  flex-direction: column;
+  gap: 7.5px;
+  margin-top: 11.25px;
+  padding: 11.25px;
+  border-radius: 11.25px;
+  background-color: #f8fafc;
+}
+
+.case-payout__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 7.5px;
+  padding-bottom: 7.5px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.case-payout__label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.case-payout__value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #008236;
+}
+
+.case-payout__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 7.5px;
+  font-size: 12px;
+  color: #45556c;
+}
+
+.case-payout__line strong {
+  font-weight: 600;
+  color: #008236;
+}
+
+.case-payout__pending {
+  font-weight: 600;
+  color: #ca3500;
+}
+
+.case-payout__none {
+  color: #94a3b8;
+}
+
+.case-payout__list {
+  display: flex;
+  flex-direction: column;
+  gap: 7.5px;
+  margin: 11.25px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.case-payout__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 7.5px;
+  font-size: 12px;
+  color: #45556c;
 }

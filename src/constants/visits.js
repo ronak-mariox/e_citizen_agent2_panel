@@ -1,9 +1,9 @@
 /* Counter appointments, across every case.
 
-   These carry the values from the Government Visits design. They are held here
-   rather than derived from CASE_DETAILS because the two Figma frames disagree —
-   the case screen shows APP-2024-00425 visiting BBMP on 04 Jul, this screen
-   shows 02 Jul — and each screen is built to match its own design.
+   These carry the values from the Government Visits design — a separate
+   fixture from the case screen's own values, since the two Figma frames
+   disagreed on this same visit's date and each screen was built to match
+   its own design.
 
    `state` drives the tile, the pin and the pill:
      completed — done, green

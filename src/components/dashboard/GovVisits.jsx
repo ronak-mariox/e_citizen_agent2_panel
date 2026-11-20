@@ -1,19 +1,22 @@
-import { GOV_VISITS } from '../../constants/dashboard.js';
+import { useNavigate } from 'react-router-dom';
 
 /* Today's counter appointments. An Agent 2 plans their day around these, so a
-   finished visit stays on the list — tinted green — rather than disappearing. */
-export function GovVisits() {
-  // TODO: opens the scheduling flow once the visits screen exists.
-  function handleSchedule() {
-    console.info('schedule visit requested');
-  }
+   finished visit stays on the list — tinted green — rather than disappearing.
+
+   `visits` comes from the dashboard's own fetch (backend `GET
+   /agent2/dashboard`) rather than being read here, so the tiles above it and
+   this list are always answering from the same request. */
+export function GovVisits({ visits = [] }) {
+  const navigate = useNavigate();
 
   return (
     <section className="dash-card">
       <h2 className="dash-card__title">Today&apos;s Government Visits</h2>
 
       <div className="visit-list">
-        {GOV_VISITS.map((visit) => (
+        {visits.length === 0 && <p className="field-empty">No visits booked for today.</p>}
+
+        {visits.map((visit) => (
           <article className={`visit visit--${visit.state}`} key={visit.id}>
             <span className="visit__dot" aria-hidden="true" />
 
@@ -29,7 +32,11 @@ export function GovVisits() {
         ))}
       </div>
 
-      <button className="visit-schedule" type="button" onClick={handleSchedule}>
+      <button
+        className="visit-schedule"
+        type="button"
+        onClick={() => navigate('/government-visits')}
+      >
         + Schedule New Visit
       </button>
     </section>

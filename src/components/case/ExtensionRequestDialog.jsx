@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { EXTENSION_DAYS, deadlineDaysLeft } from '../../constants/caseDetail.js';
+import { EXTENSION_DAYS } from '../../constants/caseDetail.js';
 import badgeClock from '../../assets/icons/agent2/case/extension/badge-clock.svg';
 import closeIcon from '../../assets/icons/agent2/case/dialog/close.svg';
 import submitIcon from '../../assets/icons/agent2/case/dialog/send.svg';
@@ -14,7 +14,12 @@ export function ExtensionRequestDialog({ record, onCancel, onSend }) {
   const [days, setDays] = useState('');
   const [reason, setReason] = useState('');
 
-  const remaining = deadlineDaysLeft(record);
+  // Floored rather than rounded — "1 day remaining" should still read as 1,
+  // not 2, until a full second day is actually left.
+  const remaining =
+    record?.slaRemainingMs != null && record.slaRemainingMs > 0
+      ? Math.floor(record.slaRemainingMs / 86400000)
+      : null;
 
   // Both fields are starred in the design, so neither can be skipped.
   const ready = days !== '' && reason.trim().length > 0;

@@ -1,11 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import DashboardLayout from '../layouts/DashboardLayout.jsx';
 import searchIcon from '../assets/icons/dashboard/search.svg';
-import refreshIcon from '../assets/icons/dashboard/refresh.svg';
-import { findCase } from '../constants/caseDetail.js';
-import { useCases } from '../context/CasesContext.jsx';
+import refreshIcon from '../assets/icons/agent2/list/refresh.svg';
+import exportIcon from '../assets/icons/agent2/list/export.svg';
+import * as queueApi from '../api/queue.js';
+import { getErrorMessage } from '../api/client.js';
+import { downloadCsv, todayStamp } from '../utils/exportCsv.js';
+import { useLiveRefresh } from '../hooks/useLiveRefresh.js';
+
+/* The API's four priorities into the three pills this stylesheet has — `urgent`
+   and `high` share the red one, because both mean "before the others" and a
+   fourth shade nobody can rank at a glance would say less than three. */
+const PRIORITY_PILL = {
+  urgent: { label: 'Urgent', tone: 'high' },
+  high: { label: 'High', tone: 'high' },
+  normal: { label: 'Normal', tone: 'medium' },
+  low: { label: 'Low', tone: 'low' },
+};
 
 const PRIORITY_TONE = { High: 'high', Medium: 'medium', Low: 'low' };
 
@@ -17,47 +30,166 @@ const STAGE_TONE = {
   'Awaiting Decision': 'waiting',
 };
 
+/* Where a case has got to, as this panel's Status column words it. Agent 1
+   forwards it at `pending_submission`; the rest are Agent 2's own workflow,
+   which is not built yet but whose statuses the API already models. */
+const STAGE_OF = {
+  pending_submission: 'Pending Submission',
+  submitted_to_department: 'Gov. Processing',
+  in_progress: 'Gov. Processing',
+  escalated: 'Awaiting Decision',
+  on_hold: 'Awaiting Decision',
+};
+
+/** One row of the exported CSV — reads straight off the same row objects the
+    table renders from, so a column here can carry anything the API already
+    returned, not only what the table shows (see api/queue.js's listMyCases). */
+const EXPORT_COLUMNS = [
+  { label: 'Application Number', value: (row) => row.applicationNumber },
+  { label: 'Reference Number', value: (row) => row.referenceNumber },
+  { label: 'Citizen Name', value: (row) => row.citizen?.fullName ?? '' },
+  { label: 'Citizen Mobile', value: (row) => row.citizen?.mobile ?? '' },
+  { label: 'Service', value: (row) => row.service?.name ?? '' },
+  { label: 'Department', value: (row) => row.department?.name ?? '' },
+  { label: 'Priority', value: (row) => row.effectivePriority ?? row.priority },
+  { label: 'Status', value: (row) => STAGE_OF[row.status] ?? row.status },
+  { label: 'SLA Remaining', value: (row) => row.sla?.remainingLabel ?? '' },
+  { label: 'Assigned At', value: (row) => row.assignedAt ?? '' },
+  { label: 'Submitted At', value: (row) => row.submittedAt ?? '' },
+];
+
+/** "KR" — the avatar beside a customer's name. */
+const initialsOf = (name, fallback = '—') => {
+  const trimmed = name?.trim();
+
+  if (!trimmed) return fallback;
+
+  return trimmed
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('');
+};
+
+const SEARCH_DEBOUNCE_MS = 300;
+const PAGE_SIZE = 20;
+
 function AssignedQueuePage() {
   const navigate = useNavigate();
-  const { assigned } = useCases();
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
 
-  /* Rows are the cases this agent still holds, joined to the record the case
-     screen opens — so a row can never point at a case that has no page, and a
-     case closed on that screen leaves the queue with it. */
-  const cases = assigned
-    .map((item) => ({ ...item, ...findCase(item.id) }))
-    .filter((item) => item.department);
+  const [rows, setRows] = useState([]);
+  const [counts, setCounts] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
-  const term = query.trim().toLowerCase();
-  const rows = term
-    ? cases.filter((row) =>
-        [row.id, row.name, row.department, row.service].some((field) =>
-          field.toLowerCase().includes(term)
-        )
-      )
-    : cases;
+  const [reloadToken, setReloadToken] = useState(0);
+  const reload = () => setReloadToken((token) => token + 1);
 
-  // Counted from the cases, so a tile can never claim a number the table denies.
+  // A live refetch keeps the rows on screen and stays quiet if it fails.
+  const silentRef = useRef(false);
+  useLiveRefresh(() => {
+    silentRef.current = true;
+    reload();
+  }, ['applications', 'wallet']);
+
+  const [exporting, setExporting] = useState(false);
+
+  /* Each keystroke would otherwise be a round trip, and the answer to "raj" is
+     thrown away the moment "rajesh" is typed. */
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const silent = silentRef.current;
+    silentRef.current = false;
+
+    // The spinner has to appear when the request starts, not when it finishes.
+    if (!silent) {
+      setLoading(true);
+      setLoadError(null);
+    }
+
+    queueApi
+      .listMyCases({ limit: PAGE_SIZE, search: debouncedQuery })
+      .then((data) => {
+        if (cancelled) return;
+
+        setRows(data.applications);
+        setCounts(data.summary);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        if (cancelled || silent) return;
+
+        setLoadError(getErrorMessage(error));
+        setRows([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    /* Guards against a slower earlier request landing after a newer one — an
+       agent typing quickly would otherwise see results for a search they had
+       already moved on from. */
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQuery, reloadToken]);
+
+  /* From the counts the API sends rather than the rows on screen: the table is
+     paged and searchable, and a tile counted from it would drop every time a
+     search narrowed the list. */
   const summary = [
-    { id: 'total', tone: 'blue', title: 'Total Assigned', value: cases.length, note: 'All queued' },
+    {
+      id: 'total',
+      tone: 'blue',
+      title: 'Total Assigned',
+      value: counts?.totalAssigned ?? 0,
+      note: 'All queued',
+    },
     {
       id: 'high-priority',
       tone: 'red',
       title: 'High Priority',
-      value: cases.filter((row) => row.priority === 'High').length,
+      value: rows.filter((row) => ['high', 'urgent'].includes(row.effectivePriority ?? row.priority))
+        .length,
       note: 'Urgent action needed',
     },
     {
       id: 'pending-submission',
       tone: 'amber',
       title: 'Pending Submission',
-      value: cases.filter((row) => row.stage === 'Pending Submission').length,
+      value: counts?.awaitingSubmission ?? 0,
       note: 'Not yet at a counter',
     },
   ];
 
   const openCase = (id) => navigate(`/assigned-queue/${id}`);
+
+  /* The table only ever shows one page of PAGE_SIZE rows, so exporting `rows`
+     as loaded would silently cut off anyone with more assigned than that. A
+     fresh fetch at the backend's own cap (100 — see MAX_LIMIT,
+     utils/pagination.js) with whatever search is active is what "export this
+     list" actually has to mean. */
+  async function handleExport() {
+    setExporting(true);
+    setLoadError(null);
+
+    try {
+      const data = await queueApi.listMyCases({ limit: 100, search: debouncedQuery });
+      downloadCsv(`assigned-queue-${todayStamp()}.csv`, EXPORT_COLUMNS, data.applications);
+    } catch (error) {
+      setLoadError(getErrorMessage(error));
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <DashboardLayout>
@@ -66,7 +198,11 @@ function AssignedQueuePage() {
           <div>
             <h1 className="queue-page__title">Assigned Queue</h1>
             <p className="queue-page__subtitle">
-              {cases.length} {cases.length === 1 ? 'case' : 'cases'} pending your action
+              {loading && !counts
+                ? 'Loading your cases…'
+                : `${counts?.totalAssigned ?? 0} ${
+                    (counts?.totalAssigned ?? 0) === 1 ? 'case' : 'cases'
+                  } pending your action`}
             </p>
           </div>
 
@@ -105,13 +241,24 @@ function AssignedQueuePage() {
             />
           </label>
 
-          <button className="queue-toolbar__button" type="button">
-            Export
+          <button
+            className="queue-toolbar__button"
+            type="button"
+            disabled={exporting}
+            onClick={handleExport}
+          >
+            <img src={exportIcon} alt="" width="13.12" height="13.12" />
+            {exporting ? 'Exporting…' : 'Export'}
           </button>
 
-          <button className="queue-toolbar__button queue-toolbar__button--muted" type="button">
+          <button
+            className="queue-toolbar__button queue-toolbar__button--muted"
+            type="button"
+            disabled={loading}
+            onClick={reload}
+          >
             <img src={refreshIcon} alt="" width="13.12" height="13.12" />
-            Refresh
+            {loading ? 'Refreshing…' : 'Refresh'}
           </button>
         </section>
 
@@ -129,7 +276,20 @@ function AssignedQueuePage() {
                 <div role="columnheader">Action</div>
               </div>
 
-              {rows.map((row) => (
+              {rows.map((row) => {
+                const effectivePriority = row.effectivePriority ?? row.priority;
+                const priority = PRIORITY_PILL[effectivePriority] ?? {
+                  label: effectivePriority,
+                  tone: 'low',
+                };
+                const stage = STAGE_OF[row.status] ?? 'Pending Submission';
+                /* A customer who has not filled in their profile has no name
+                   anywhere, and their mobile is who they are — a blank cell
+                   would read as missing data rather than an unfinished
+                   profile. */
+                const name = row.citizen?.fullName ?? row.citizen?.mobile ?? 'Unknown';
+
+                return (
                 <div
                   className="queue-table__row cursor-pointer"
                   role="row"
@@ -137,41 +297,41 @@ function AssignedQueuePage() {
                   onClick={() => openCase(row.id)}
                 >
                   <div className="queue-table__cell queue-table__id" role="cell">
-                    {row.id}
+                    {row.applicationNumber}
                   </div>
 
                   <div className="queue-table__cell" role="cell">
                     <div className="queue-table__customer">
                       <span className="avatar" aria-hidden="true">
-                        {row.initials}
+                        {initialsOf(row.citizen?.fullName)}
                       </span>
-                      <span className="queue-table__name">{row.name}</span>
+                      <span className="queue-table__name">{name}</span>
                     </div>
                   </div>
 
                   <div className="queue-table__cell queue-meta" role="cell">
-                    {row.department}
+                    {row.department?.name ?? '—'}
                   </div>
 
                   <div className="queue-table__cell queue-table__service" role="cell">
-                    {row.service}
+                    {row.service?.name ?? '—'}
                   </div>
 
                   <div className="queue-table__cell" role="cell">
-                    <span className={`queue-pill queue-pill--${PRIORITY_TONE[row.priority]}`}>
-                      {row.priority}
+                    <span className={`queue-pill queue-pill--${priority.tone}`}>
+                      {priority.label}
                     </span>
                   </div>
 
                   <div className="queue-table__cell" role="cell">
-                    <span className={`queue-pill queue-pill--${STAGE_TONE[row.stage] ?? 'pending'}`}>
+                    <span className={`queue-pill queue-pill--${STAGE_TONE[stage] ?? 'pending'}`}>
                       <span className="queue-pill__dot" aria-hidden="true" />
-                      {row.stage}
+                      {stage}
                     </span>
                   </div>
 
                   <div className="queue-table__cell queue-table__time" role="cell">
-                    {row.deadline}
+                    {row.sla?.remainingLabel ?? '—'}
                   </div>
 
                   <div className="queue-table__cell" role="cell">
@@ -189,7 +349,31 @@ function AssignedQueuePage() {
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
+
+              {/* Still loading, the request failed, and a genuinely empty desk
+                  say three different things. */}
+              {loading && rows.length === 0 && (
+                <p className="queue-empty">Loading your cases…</p>
+              )}
+
+              {!loading && loadError && (
+                <p className="queue-empty queue-empty--error" role="alert">
+                  {loadError}
+                  <button className="queue-action" type="button" onClick={reload}>
+                    Try again
+                  </button>
+                </p>
+              )}
+
+              {!loading && !loadError && rows.length === 0 && (
+                <p className="queue-empty">
+                  {debouncedQuery
+                    ? 'No case on your desk matches that search.'
+                    : 'Nothing assigned to you yet. Cases arrive here once Agent 1 has verified them.'}
+                </p>
+              )}
             </div>
           </div>
         </section>

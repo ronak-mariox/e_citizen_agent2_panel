@@ -1,42 +1,76 @@
 import { useState } from 'react';
 
-import { GOVERNMENT_VISITS } from '../../constants/visits.js';
-import { CASE_DETAILS } from '../../constants/caseDetail.js';
 import dialogPin from '../../assets/icons/agent2/visits/dialog-pin.svg';
 import dialogClose from '../../assets/icons/agent2/visits/dialog-close.svg';
 import dialogSubmit from '../../assets/icons/agent2/visits/dialog-submit.svg';
 
 /* Booking or amending a counter appointment.
+ *
+ * One form for both: scheduling starts blank, editing starts on the visit
+ * that was clicked. Only the heading, the confirm label and whether the
+ * application can still be changed differ.
+ *
+ * `visit` (editing) carries an `applicationId` a visit can never be moved off
+ * of — the backend's PATCH is nested under the one case it already belongs
+ * to (`/agent2/applications/:id/visits/:visitId`) — so the case picker locks
+ * once one is set, rather than offering a choice the save call cannot honour.
+ */
 
-   One form for both: scheduling starts blank, editing starts on the visit that
-   was clicked. Only the heading and the confirm label differ, because the
-   questions asked are identical either way. */
+const blank = { applicationId: '', office: '', officer: '', date: '', time: '', purpose: '' };
 
-/** Offices already in use, so the list reflects where this agent actually goes. */
-const OFFICES = [...new Set(GOVERNMENT_VISITS.map((visit) => visit.office))];
-
-const blank = {
-  caseId: '',
-  office: '',
-  officer: '',
-  date: '',
-  time: '',
-  purpose: '',
+/** `<input type="date">`/`type="time">` want `yyyy-mm-dd`/`HH:mm`. */
+const dateOf = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
+};
+const timeOf = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 };
 
-export function VisitFormDialog({ visit, onCancel, onSave }) {
+export function VisitFormDialog({ visit, offices, cases = [], onCancel, onSave }) {
   const editing = Boolean(visit);
-  const [form, setForm] = useState(() => (visit ? { ...blank, ...visit } : blank));
+  const [form, setForm] = useState(() =>
+    visit
+      ? {
+          applicationId: visit.applicationId,
+          office: visit.office,
+          officer: visit.officer ?? '',
+          date: dateOf(visit.scheduledAt),
+          time: timeOf(visit.scheduledAt),
+          purpose: visit.purpose ?? '',
+        }
+      : blank
+  );
+  const [saving, setSaving] = useState(false);
 
   const set = (name, value) => setForm((current) => ({ ...current, [name]: value }));
 
-  const ready = form.caseId && form.office && form.officer && form.date && form.time && form.purpose;
+  const ready =
+    form.applicationId && form.office && form.officer && form.date && form.time && form.purpose;
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     if (!ready) return;
 
-    onSave(form);
+    const iso = new Date(`${form.date}T${form.time}`);
+    if (Number.isNaN(iso.getTime())) return;
+
+    setSaving(true);
+    try {
+      await onSave({
+        applicationId: form.applicationId,
+        office: form.office,
+        officer: form.officer,
+        purpose: form.purpose,
+        scheduledAt: iso.toISOString(),
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -71,19 +105,26 @@ export function VisitFormDialog({ visit, onCancel, onSave }) {
         <div className="visit-dialog__body">
           <label className="visit-field">
             <span className="visit-field__label">
-              Application ID <span className="visit-field__required">*</span>
+              Application <span className="visit-field__required">*</span>
             </span>
             <select
               className="visit-field__input"
-              value={form.caseId}
-              onChange={(event) => set('caseId', event.target.value)}
+              value={form.applicationId}
+              disabled={editing}
+              onChange={(event) => set('applicationId', event.target.value)}
             >
               <option value="">–Select Application–</option>
-              {Object.values(CASE_DETAILS).map((record) => (
-                <option value={record.id} key={record.id}>
-                  {record.id} · {record.name}
+              {cases.map((one) => (
+                <option value={one.id} key={one.id}>
+                  {one.applicationNumber} · {one.citizenName ?? 'Unknown'}
                 </option>
               ))}
+              {/* Editing a visit whose case is not in the current page of
+                  cases still has to show something rather than a blank
+                  selection. */}
+              {editing && !cases.some((one) => one.id === form.applicationId) && (
+                <option value={form.applicationId}>{visit.applicationNumber}</option>
+              )}
             </select>
           </label>
 
@@ -97,8 +138,8 @@ export function VisitFormDialog({ visit, onCancel, onSave }) {
                 value={form.office}
                 onChange={(event) => set('office', event.target.value)}
               >
-                <option value="">BBMP Head Office</option>
-                {OFFICES.map((office) => (
+                <option value="">Choose an office…</option>
+                {offices.map((office) => (
                   <option value={office} key={office}>
                     {office}
                   </option>
@@ -126,8 +167,8 @@ export function VisitFormDialog({ visit, onCancel, onSave }) {
               </span>
               <input
                 className="visit-field__input"
+                type="date"
                 value={form.date}
-                placeholder="Enter the visit date (DD/MM/YYYY)"
                 onChange={(event) => set('date', event.target.value)}
               />
             </label>
@@ -138,8 +179,8 @@ export function VisitFormDialog({ visit, onCancel, onSave }) {
               </span>
               <input
                 className="visit-field__input"
+                type="time"
                 value={form.time}
-                placeholder="Enter the visit time (HH:MM)"
                 onChange={(event) => set('time', event.target.value)}
               />
             </label>
@@ -158,12 +199,12 @@ export function VisitFormDialog({ visit, onCancel, onSave }) {
           </label>
 
           <div className="visit-dialog__actions">
-            <button className="visit-dialog__cancel" type="button" onClick={onCancel}>
+            <button className="visit-dialog__cancel" type="button" onClick={onCancel} disabled={saving}>
               Cancel
             </button>
-            <button className="visit-dialog__submit" type="submit" disabled={!ready}>
+            <button className="visit-dialog__submit" type="submit" disabled={!ready || saving}>
               <img src={dialogSubmit} alt="" width="11.247" height="11.247" />
-              {editing ? 'Save Visit' : 'Schedule Visit'}
+              {saving ? 'Saving…' : editing ? 'Save Visit' : 'Schedule Visit'}
             </button>
           </div>
         </div>
